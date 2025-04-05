@@ -74,7 +74,7 @@ public class ItemTextureData extends ResourcePackResource {
     public MCCItemStack createItem() {
         var stack = material.createItem();
         if (customModelData != 0) {
-            stack.components().edit(MCCDataComponentTypes.CUSTOM_MODEL_DATA.get(), editor -> editor.with(mccCustomModelData -> mccCustomModelData.withValue(customModelData)));
+            stack.components().edit(MCCDataComponentTypes.ITEM_MODEL.get(), editor -> editor.set(key()));
         }
         return stack;
     }
@@ -89,6 +89,7 @@ public class ItemTextureData extends ResourcePackResource {
         createModelFile(customPack);
     }
 
+    @Deprecated
     public static void createVanillaModelFile(@MCCRequireVanillaElement MCCItemType material, Set<ItemTextureData> installedItems, CustomResourcePack customPack) {
         material.requireVanilla();
         Key vanillaKey = Key.key(material.key().namespace(), "item/" + material.key().value());
