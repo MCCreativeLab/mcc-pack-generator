@@ -28,19 +28,16 @@ import java.util.*;
 
 public class CustomResourcePack extends CustomPack<CustomResourcePack> {
     public static final AssetPath resourcePacksFolder = AssetPath.buildPath("resourcePacks");
-    public static final ItemTextureData EMPTY_ITEM = new ItemTextureData(Key.key("mccreativelab", "item/empty_item"), MCCItems.GRAY_STAINED_GLASS_PANE.get(), CustomModelDataProvider.drawCustomModelData(Key.key(Key.MINECRAFT_NAMESPACE, "gray_staned_glass_pane")), new Asset<>("/empty_block/textures/empty.png"), null);
     private final Map<String, SoundFile> soundFilesPerNamespace = new HashMap<>();
     private final Map<MCCItemType, Set<ItemTextureData>> itemTextureDataPerMaterial = new HashMap<>();
     private final Map<MCCBlockState, Set<AlternateBlockStateModel>> alternateBlockStateModels = new HashMap<>();
     private final LanguageStorage languageStorage = new LanguageStorage(this);
     private final ResourcePackMapper resourcePackMapper = new ResourcePackMapper();
-    private final ItemTextureData emptyItem;
     private final List<File> includedResourcePacks = new LinkedList<>();
+    private ItemTextureData emptyItem;
 
     public CustomResourcePack(String packName, int packFormat, String description, AssetPath savePath, File templateFolder, File dataFolder) {
         super(packName, packFormat, description, savePath, templateFolder, dataFolder);
-        emptyItem = EMPTY_ITEM;
-        register(emptyItem);
     }
 
     @Override
@@ -56,6 +53,9 @@ public class CustomResourcePack extends CustomPack<CustomResourcePack> {
     }
 
     public ItemTextureData getEmptyItem() {
+        if(emptyItem == null) {
+            emptyItem = new ItemTextureData(Key.key("mccreativelab", "item/empty_item"), MCCItems.GRAY_STAINED_GLASS_PANE.get(), CustomModelDataProvider.drawCustomModelData(Key.key(Key.MINECRAFT_NAMESPACE, "gray_staned_glass_pane")), new Asset<>("/empty_block/textures/empty.png"), null);
+        }
         return emptyItem;
     }
 
@@ -136,6 +136,7 @@ public class CustomResourcePack extends CustomPack<CustomResourcePack> {
         }
         ShaderRendered.installShaderFileToPack(this);
         this.languageStorage.installLanguages();
+        register(getEmptyItem());
     }
 
     @Override
