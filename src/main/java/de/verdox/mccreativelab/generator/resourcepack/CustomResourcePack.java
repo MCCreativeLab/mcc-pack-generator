@@ -28,6 +28,7 @@ import java.util.*;
 
 public class CustomResourcePack extends CustomPack<CustomResourcePack> {
     public static final AssetPath resourcePacksFolder = AssetPath.buildPath("resourcePacks");
+    private static ItemTextureData EMPTY_ITEM;
     private final Map<String, SoundFile> soundFilesPerNamespace = new HashMap<>();
     private final Map<MCCItemType, Set<ItemTextureData>> itemTextureDataPerMaterial = new HashMap<>();
     private final Map<MCCBlockState, Set<AlternateBlockStateModel>> alternateBlockStateModels = new HashMap<>();
@@ -54,10 +55,18 @@ public class CustomResourcePack extends CustomPack<CustomResourcePack> {
 
     public ItemTextureData getEmptyItem() {
         if(emptyItem == null) {
-            emptyItem = new ItemTextureData(Key.key("mccreativelab", "item/empty_item"), MCCItems.GRAY_STAINED_GLASS_PANE.get(), CustomModelDataProvider.drawCustomModelData(Key.key(Key.MINECRAFT_NAMESPACE, "gray_staned_glass_pane")), new Asset<>("/empty_block/textures/empty.png"), null);
+            emptyItem = EMPTY_ITEM();
         }
         return emptyItem;
     }
+
+    public static ItemTextureData EMPTY_ITEM() {
+        if(EMPTY_ITEM == null) {
+            EMPTY_ITEM = new ItemTextureData(Key.key("mccreativelab", "item/empty_item"), MCCItems.GRAY_STAINED_GLASS_PANE.get(), CustomModelDataProvider.drawCustomModelData(Key.key(Key.MINECRAFT_NAMESPACE, "gray_staned_glass_pane")), new Asset<>("/empty_block/textures/empty.png"), null);
+        }
+        return EMPTY_ITEM;
+    }
+
 
     public ResourcePackMapper getResourcePackMapper() {
         return resourcePackMapper;

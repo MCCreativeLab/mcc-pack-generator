@@ -34,7 +34,7 @@ public class ClickableItem {
     public static class Builder {
         private BiConsumer<GUIClickAction, ActiveGUI> onClick = (inventoryClickEvent, activeGUI) -> {
         };
-        private MCCItemStack item = CustomResourcePack.EMPTY_ITEM.createItem();
+        private MCCItemStack item = CustomResourcePack.EMPTY_ITEM().createItem();
         public boolean popGUIStack = false;
         public boolean clearGUIStackAndClose = false;
         private Consumer<MCCItemStack> itemSetup;
