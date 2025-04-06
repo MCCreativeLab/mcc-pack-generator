@@ -41,6 +41,10 @@ public class CustomResourcePack extends CustomPack<CustomResourcePack> {
         super(packName, packFormat, description, savePath, templateFolder, dataFolder);
     }
 
+    public void initialize() {
+        resourcePackMapper.init();
+    }
+
     @Override
     public void onShutdown() throws IOException {
         for (File includedResourcePack : includedResourcePacks) {
