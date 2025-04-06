@@ -15,29 +15,30 @@ import de.verdox.mccreativelab.wrapper.platform.MCCPlatform;
 import de.verdox.mccreativelab.wrapper.registry.MCCReference;
 import de.verdox.mccreativelab.wrapper.registry.MCCRegistry;
 import de.verdox.mccreativelab.wrapper.registry.MCCTypedKey;
+import de.verdox.mccreativelab.wrapper.registry.OpenRegistry;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.Keyed;
 
 public class ResourcePackMapper {
-    private MCCReference<MCCRegistry<CustomGUIBuilder>> guiRegistry;
-    private MCCReference<MCCRegistry<CustomHud>> hudRegistry;
-    private MCCReference<MCCRegistry<ItemTextureData>> itemTextureRegistry;
-    private MCCReference<MCCRegistry<ModelFile>> modelRegistry;
-    private MCCReference<MCCRegistry<ShaderRendered>> shaderRenderedRegistry;
-    private MCCReference<MCCRegistry<SoundData>> soundRegistry;
-    private MCCReference<MCCRegistry<CustomMenu>> menuRegistry;
-    private MCCReference<MCCRegistry<LanguageFile>> languageFileRegistry;
-    private MCCReference<MCCRegistry<Font>> fontRegistry;
+    private MCCReference<OpenRegistry<CustomGUIBuilder>> guiRegistry;
+    private MCCReference<OpenRegistry<CustomHud>> hudRegistry;
+    private MCCReference<OpenRegistry<ItemTextureData>> itemTextureRegistry;
+    private MCCReference<OpenRegistry<ModelFile>> modelRegistry;
+    private MCCReference<OpenRegistry<ShaderRendered>> shaderRenderedRegistry;
+    private MCCReference<OpenRegistry<SoundData>> soundRegistry;
+    private MCCReference<OpenRegistry<CustomMenu>> menuRegistry;
+    private MCCReference<OpenRegistry<LanguageFile>> languageFileRegistry;
+    private MCCReference<OpenRegistry<Font>> fontRegistry;
 
     void init() {
         guiRegistry = createRegistry("gui");
         hudRegistry = createRegistry("hud");
-        itemTextureRegistry = createRegistry("itemTextures");
+        itemTextureRegistry = createRegistry("item_textures");
         modelRegistry = createRegistry("models");
-        shaderRenderedRegistry = createRegistry("shaderRendered");
+        shaderRenderedRegistry = createRegistry("shader_rendered");
         soundRegistry = createRegistry("sounds");
         menuRegistry = createRegistry("menu");
-        languageFileRegistry = createRegistry("languageFile");
+        languageFileRegistry = createRegistry("language_file");
         fontRegistry = createRegistry("font");
     }
 
@@ -74,26 +75,26 @@ public class ResourcePackMapper {
         clearRegistry(fontRegistry);
     }
 
-    private <T> MCCReference<MCCRegistry<T>> createRegistry(String name) {
-        return MCCPlatform.getInstance().getRegistryStorage().createMinecraftRegistry(Key.key("mcc", name));
+    private <T> MCCReference<OpenRegistry<T>> createRegistry(String name) {
+        return MCCPlatform.getInstance().getRegistryStorage().createOpenRegistry(Key.key("mcc", name));
     }
 
-    private <T> MCCReference<T> register(T value, Key key, MCCReference<MCCRegistry<T>> registry) {
+    private <T> MCCReference<T> register(T value, Key key, MCCReference<OpenRegistry<T>> registry) {
         MCCTypedKey<T> typedKey = MCCPlatform.getInstance().getTypedKeyFactory().getKey(key, registry.unwrapKey().get().key());
         return registry.get().register(typedKey, value);
     }
 
-    private <T extends MCCKeyedWrapper> MCCReference<T> register(T value, MCCReference<MCCRegistry<T>> registry) {
+    private <T extends MCCKeyedWrapper> MCCReference<T> register(T value, MCCReference<OpenRegistry<T>> registry) {
         MCCTypedKey<T> typedKey = MCCPlatform.getInstance().getTypedKeyFactory().getKey(value.key(), registry.unwrapKey().get().key());
         return registry.get().register(typedKey, value);
     }
 
-    private <T extends Keyed> MCCReference<T> register(T value, MCCReference<MCCRegistry<T>> registry) {
+    private <T extends Keyed> MCCReference<T> register(T value, MCCReference<OpenRegistry<T>> registry) {
         MCCTypedKey<T> typedKey = MCCPlatform.getInstance().getTypedKeyFactory().getKey(value.key(), registry.unwrapKey().get().key());
         return registry.get().register(typedKey, value);
     }
 
-    private <T> void clearRegistry(MCCReference<MCCRegistry<T>> reference) {
-        // TODO: MCCPlatform.getInstance().getRegistryStorage().deleteCustomMinecraftRegistry(reference.unwrapKey().get().key());
+    private <T> void clearRegistry(MCCReference<OpenRegistry<T>> reference) {
+        MCCPlatform.getInstance().getRegistryStorage().deleteCustomMinecraftRegistry(reference.unwrapKey().get().key());
     }
 }
