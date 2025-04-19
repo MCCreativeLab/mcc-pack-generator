@@ -10,7 +10,7 @@ plugins {
 }
 
 repositories {
-    mavenLocal()
+    //mavenLocal()
     mavenCentral()
     maven {
         name = "Verdox Reposilite"
