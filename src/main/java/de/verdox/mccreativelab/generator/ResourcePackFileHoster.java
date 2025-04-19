@@ -39,6 +39,7 @@ public class ResourcePackFileHoster {
     public static final Logger LOGGER = Logger.getLogger(ResourcePackFileHoster.class.getSimpleName());
 
     public static final boolean WITH_HASHES = false;
+    private final String packName;
     private HttpServer httpServer;
     private final Map<String, MCCResourcePack> availableResourcePacks = new HashMap<>();
     private MCCResourcePack standardPack;
@@ -47,7 +48,8 @@ public class ResourcePackFileHoster {
     private WebServerHandler webServerHandler;
     private SshResourcePackUpload sshResourcePackUpload;
 
-    public ResourcePackFileHoster(File srcDir) throws IOException {
+    public ResourcePackFileHoster(File srcDir, String packName) throws IOException {
+        this.packName = packName;
         File configFile = new File(srcDir + "/rpHosting_settings.json");
         configFile.getParentFile().mkdirs();
 
@@ -106,7 +108,7 @@ public class ResourcePackFileHoster {
                 File resourcePackParentFolder = path.toFile();
                 String resourcePackName = resourcePackParentFolder.getName();
                 File zipFile = Path.of(resourcePackParentFolder.getPath() + ".zip").toFile();
-                if (!resourcePackName.equals("MCCreativeLab"))
+                if (!resourcePackName.equals(packName))
                     return;
 
 
