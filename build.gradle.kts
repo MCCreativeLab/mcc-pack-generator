@@ -21,7 +21,7 @@ repositories {
 dependencies {
     //compileOnly("de.verdox.mccreativelab:mcc-util:" + providers.gradleProperty("version").get())
     compileOnly("de.verdox.mccreativelab.mcc-wrapper:api:" + providers.gradleProperty("version").get())
-    compileOnly("de.verdox:vserializer:+")
+    compileOnly("de.verdox:vserializer:1.2.3-SNAPSHOT")
     compileOnly("org.jetbrains:annotations:26.0.1")
     compileOnly("io.vertx:vertx-core:4.5.10")
     compileOnly("com.hierynomus:sshj:0.38.0")
