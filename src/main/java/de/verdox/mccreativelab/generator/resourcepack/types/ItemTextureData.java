@@ -73,9 +73,9 @@ public class ItemTextureData extends ResourcePackResource {
 
     public MCCItemStack createItem() {
         var stack = material.createItem();
-        if (customModelData != 0) {
+        //if (customModelData != 0) {
             stack.components().edit(MCCDataComponentTypes.ITEM_MODEL.get(), editor -> editor.set(key()));
-        }
+        //}
         return stack;
     }
 
@@ -385,6 +385,7 @@ public class ItemTextureData extends ResourcePackResource {
         return material;
     }
 
+    @Deprecated
     public int getCustomModelData() {
         return customModelData;
     }
