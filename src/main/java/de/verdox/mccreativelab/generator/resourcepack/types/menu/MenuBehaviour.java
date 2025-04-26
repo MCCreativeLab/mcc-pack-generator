@@ -47,12 +47,6 @@ public abstract class MenuBehaviour {
         heldSlotBefore = player.getInventory().getHeldItemSlot();
         locationBefore = player.getLocation();
 
-        player.getLocation().world().
-
-        MCCLocation spawnLocation = new MCCLocation(player.getLocation().world(), player.getLocation().)
-
-        MCCEntityTypes.MARKER.get().summon(player.getLocation().);
-
         player.getTempData().storeData("hasMenuOpen", false);
 
         this.checkerTask = MCCPlatform.getInstance().getTaskManager().runTimerAsync(mccTask -> {
