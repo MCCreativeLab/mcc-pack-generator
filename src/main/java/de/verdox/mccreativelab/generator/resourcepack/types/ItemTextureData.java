@@ -294,17 +294,17 @@ public class ItemTextureData extends ResourcePackResource {
         }
 
         public static ModelType useModelOfExistingItem(Key itemKey) {
-            return new ModelType("item/generated", (namespacedKey, jsonObject) ->
+            return new ModelType("minecraft:item/generated", (namespacedKey, jsonObject) ->
                 JsonObjectBuilder.create(jsonObject).add("parent", itemKey.asString())
                     .build());
         }
 
-        public static final ModelType GENERATED_ITEM = new ModelType("item/generated", (namespacedKey, jsonObject) ->
-            JsonObjectBuilder.create(jsonObject).add("parent", "item/generated")
+        public static final ModelType GENERATED_ITEM = new ModelType("minecraft:item/generated", (namespacedKey, jsonObject) ->
+            JsonObjectBuilder.create(jsonObject).add("parent", "minecraft:item/generated")
                 .add("textures", JsonObjectBuilder.create().add("layer0", namespacedKey.toString()))
                 .build());
-        public static final ModelType HAND_HELD = new ModelType("item/handheld", (namespacedKey, jsonObject) ->
-            JsonObjectBuilder.create(jsonObject).add("parent", "item/handheld")
+        public static final ModelType HAND_HELD = new ModelType("minecraft:item/handheld", (namespacedKey, jsonObject) ->
+            JsonObjectBuilder.create(jsonObject).add("parent", "minecraft:item/handheld")
                 .add("textures", JsonObjectBuilder.create().add("layer0", namespacedKey.toString()))
                 .build());
         public static final ModelType FAKE_CROP = new ModelType("minecraft:block/crop", (namespacedKey, jsonObject) ->
@@ -322,8 +322,8 @@ public class ItemTextureData extends ResourcePackResource {
                 .add("textures", JsonObjectBuilder.create().add("all", namespacedKey.toString()))
                 .build());
 
-        public static final ModelType CLICKABLE_ITEM = new ModelType("clickable_item", (namespacedKey, jsonObject) ->
-            JsonObjectBuilder.create(jsonObject).add("parent", "item/generated")
+        public static final ModelType CLICKABLE_ITEM = new ModelType("minecraft:clickable_item", (namespacedKey, jsonObject) ->
+            JsonObjectBuilder.create(jsonObject).add("parent", "minecraft:item/generated")
                 .add("textures", JsonObjectBuilder.create().add("layer0", namespacedKey.toString()))
                 .add("", "")
                 .add("display",
