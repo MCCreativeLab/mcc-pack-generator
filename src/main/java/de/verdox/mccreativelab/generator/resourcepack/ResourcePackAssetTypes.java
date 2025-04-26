@@ -25,6 +25,10 @@ public class ResourcePackAssetTypes {
      */
     public static final AssetType<CustomResourcePack> MODELS = new AssetType<>(AssetPath.buildPath("models"));
     /**
+     * Used to define items and their models
+     */
+    public static final AssetType<CustomResourcePack> ITEMS = new AssetType<>(AssetPath.buildPath("items"));
+    /**
      * Used to store sound files
      */
     public static final AssetType<CustomResourcePack> SOUNDS = new AssetType<>(AssetPath.buildPath("sounds"));

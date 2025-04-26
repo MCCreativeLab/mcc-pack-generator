@@ -80,6 +80,12 @@ public class ItemTextureData extends ResourcePackResource {
     }
 
     @Override
+    public void beforeResourceInstallation(CustomResourcePack customPack) throws IOException {
+        ItemModelDefinition itemModelDefinition = new ItemModelDefinition(key());
+        customPack.register(itemModelDefinition);
+    }
+
+    @Override
     public void installResourceToPack(CustomResourcePack customPack) throws IOException {
         var hasCustomTexture = pngFile != null;
 
@@ -89,52 +95,16 @@ public class ItemTextureData extends ResourcePackResource {
         createModelFile(customPack);
     }
 
-    @Deprecated
-    public static void createVanillaModelFile(@MCCRequireVanillaElement MCCItemType material, Set<ItemTextureData> installedItems, CustomResourcePack customPack) {
-        material.requireVanilla();
-        Key vanillaKey = Key.key(material.key().namespace(), "item/" + material.key().value());
-        JsonObject jsonToWriteToFile = createModelJson(material, vanillaKey, null);
-
-        addCustomModelDataListToVanillaModelFile(installedItems, jsonToWriteToFile);
-
-        AssetUtil.createJsonAssetAndInstall(jsonToWriteToFile, customPack, vanillaKey, ResourcePackAssetTypes.MODELS);
-        LOGGER.info("Installing modified vanilla item model for " + vanillaKey + " with " + installedItems.size() + " entries");
-    }
-
-    private static void addCustomModelDataListToVanillaModelFile(Set<ItemTextureData> installedItems, JsonObject jsonToWriteToFile) {
-        var list = new LinkedList<JsonObject>();
-        var builder = JsonObjectBuilder.create(jsonToWriteToFile)
-            .getOrCreateArray("overrides", jsonArrayBuilder -> {
-                for (ItemTextureData installedItem : installedItems) {
-                    String textureKey = installedItem.useVanillaTexture ? Key.key(Key.MINECRAFT_NAMESPACE, "item/" + installedItem.getMaterial().key().value()).asString() : installedItem.key().toString();
-                    jsonArrayBuilder.add(
-                        JsonObjectBuilder
-                            .create()
-                            .add("predicate",
-                                JsonObjectBuilder
-                                    .create()
-                                    .add("custom_model_data", installedItem.customModelData))
-                            .add("model", textureKey));
-                }
-                jsonArrayBuilder.build()
-                    .forEach(jsonElement -> list.add(jsonElement.getAsJsonObject()));
-            });
-
-        list.sort(Comparator.comparing(jsonElement -> jsonElement.getAsJsonObject().getAsJsonObject("predicate")
-            .get("custom_model_data").getAsJsonPrimitive()
-            .getAsInt()));
-
-        var sortedArray = JsonArrayBuilder.create();
-        list.forEach(jsonElement -> {
-            sortedArray.add(JsonObjectBuilder.create(jsonElement));
-        });
-        builder.add("overrides", sortedArray);
-    }
-
     private void createModelFile(CustomResourcePack customPack) {
         JsonObject jsonToWriteToFile = createModelJson(this.material, key(), modelType);
-
         AssetUtil.createJsonAssetAndInstall(jsonToWriteToFile, customPack, key(), ResourcePackAssetTypes.MODELS);
+
+/*        JsonObject items = JsonObjectBuilder.create()
+                        .add("model", JsonObjectBuilder.create()
+                                .add("type", "minecraft:model")
+                                .add("model", key().asString())
+                        ).build();
+        AssetUtil.createJsonAssetAndInstall(items, customPack, key(), ResourcePackAssetTypes.ITEMS);*/
     }
 
     private static JsonObject createModelJson(@MCCRequireVanillaElement MCCItemType material, Key key, @Nullable ModelType modelType) {
