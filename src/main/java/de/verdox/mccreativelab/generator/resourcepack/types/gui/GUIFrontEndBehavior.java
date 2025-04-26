@@ -72,7 +72,7 @@ public abstract class GUIFrontEndBehavior {
                             continue;
                         }
 
-                        var itemAtCursor = player.getCursorProperty().get().copy();
+                        var itemAtCursor = player.getCursorItem().copy();
                         openUpdatedInventory(player, itemAtCursor, newRendering);
                         viewersToAdd.add(player);
                     }
@@ -327,7 +327,7 @@ public abstract class GUIFrontEndBehavior {
                 if (itemAtCursor != null) {
                     if (menu != null && !itemAtCursor.getType().isEmpty() && !activeGUI.getComponentRendered().isUsePlayerSlots()) {
                         player.getInventory().removeItem(itemAtCursor);
-                        player.getCursorProperty().set(itemAtCursor);
+                        player.setCursorItem(itemAtCursor);
                     }
                 }
             } finally {
