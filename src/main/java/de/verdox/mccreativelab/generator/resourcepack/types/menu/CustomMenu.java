@@ -80,7 +80,7 @@ public class CustomMenu extends ResourcePackResource {
 
         Key backgroundPictureKey = Key.key(getKey().namespace(), "item/menu/"+getKey().value() + "/background/" + id);
         ItemTextureData.ModelType modelType = Resolution.createModel(resolution, backgroundPictureKey);
-        ItemTextureData itemTextureData = new ItemTextureData(backgroundPictureKey, MCCItems.FIREWORK_STAR.get(), CustomModelDataProvider.drawCustomModelData(Key.key(Key.MINECRAFT_NAMESPACE, "firework_star")), picture, modelType);
+        ItemTextureData itemTextureData = new ItemTextureData(backgroundPictureKey, MCCItems.FIREWORK_STAR.get(), 0, picture, modelType);
         backgroundPictures.put(id, itemTextureData);
         return this;
     }
