@@ -1,31 +1,31 @@
 package de.verdox.mccreativelab.generator.resourcepack.types.menu;
 
 import de.verdox.mccreativelab.generator.Asset;
-import de.verdox.mccreativelab.generator.resourcepack.CustomModelDataProvider;
 import de.verdox.mccreativelab.generator.resourcepack.CustomResourcePack;
+import de.verdox.mccreativelab.generator.resourcepack.ResourcePackAssetTypes;
 import de.verdox.mccreativelab.generator.resourcepack.ResourcePackResource;
 import de.verdox.mccreativelab.generator.resourcepack.types.hud.CustomHud;
 import de.verdox.mccreativelab.generator.resourcepack.types.ItemTextureData;
 import de.verdox.mccreativelab.wrapper.entity.types.MCCPlayer;
+import de.verdox.mccreativelab.wrapper.typed.MCCDataComponentTypes;
 import de.verdox.mccreativelab.wrapper.typed.MCCItems;
 import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.units.qual.C;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 public class CustomMenu extends ResourcePackResource {
     public static final Logger LOGGER = Logger.getLogger(CustomMenu.class.getName());
     private Consumer<ActiveMenu> onClose;
-    private final Map<String, ItemTextureData> backgroundPictures = new HashMap<>();
+    private final Map<String, Key> backgroundPictures = new HashMap<>();
     private final Map<String, MenuState> states = new HashMap<>();
     private final Set<PlayerKeyInput> cancelledGameInputs = new HashSet<>();
+    private final Map<Key, Asset<CustomResourcePack>> backgroundPictureAssets = new HashMap<>();
     private boolean built = false;
     @Nullable
     private CustomHud menuHud;
@@ -70,7 +70,7 @@ public class CustomMenu extends ResourcePackResource {
         return this;
     }
 
-    public CustomMenu withBackgroundPicture(String id, Asset<CustomResourcePack> picture, Resolution resolution) {
+    public CustomMenu withBackgroundPicture(String id, Asset<CustomResourcePack> picture) {
         if (isBuilt()) {
             LOGGER.warning("Can't modify a menu when it has been built");
             return this;
@@ -78,10 +78,19 @@ public class CustomMenu extends ResourcePackResource {
         if (backgroundPictures.containsKey(id))
             throw new IllegalArgumentException("id " + id + " already taken");
 
-        Key backgroundPictureKey = Key.key(getKey().namespace(), "item/menu/"+getKey().value() + "/background/" + id);
-        ItemTextureData.ModelType modelType = Resolution.createModel(resolution, backgroundPictureKey);
-        ItemTextureData itemTextureData = new ItemTextureData(backgroundPictureKey, MCCItems.FIREWORK_STAR.get(), 0, picture, modelType);
-        backgroundPictures.put(id, itemTextureData);
+        Key backgroundPictureKey = Key.key(getKey().namespace(), "menu/" + getKey().value() + "/background/" + id);
+
+        //ItemTextureData.ModelType modelType = Resolution.createModel(resolution, backgroundPictureKey);
+        ItemTextureData itemTextureData = new ItemTextureData(backgroundPictureKey, MCCItems.FIREWORK_STAR.get(), picture, null);
+        itemTextureData.setStackConsumer(mccItemStack -> {
+            mccItemStack.components().edit(MCCDataComponentTypes.EQUIPPABLE.get(),
+                    editor -> editor.with(mccEquippable ->
+                            mccEquippable.cameraOverlay().with(Optional.of(backgroundPictureKey))
+                    )
+            );
+        });
+        backgroundPictureAssets.put(backgroundPictureKey, picture);
+        backgroundPictures.put(id, backgroundPictureKey);
         return this;
     }
 
@@ -101,10 +110,16 @@ public class CustomMenu extends ResourcePackResource {
         return built;
     }
 
-    public void build() {
+    public void build(CustomResourcePack customPack) throws IOException {
         if (isBuilt())
             return;
         built = true;
+
+        for (Map.Entry<Key, Asset<CustomResourcePack>> keyAssetEntry : backgroundPictureAssets.entrySet()) {
+            Key assetKey = keyAssetEntry.getKey();
+            var asset = keyAssetEntry.getValue();
+            asset.installAsset(customPack, assetKey, ResourcePackAssetTypes.TEXTURES, ".png");
+        }
     }
 
     public ActiveMenu createMenuForPlayer(MCCPlayer player) {
@@ -115,7 +130,7 @@ public class CustomMenu extends ResourcePackResource {
         return menuHud;
     }
 
-    Map<String, ItemTextureData> getBackgroundPictures() {
+    Map<String, Key> getBackgroundPictureKey() {
         return new HashMap<>(backgroundPictures);
     }
 
@@ -133,15 +148,14 @@ public class CustomMenu extends ResourcePackResource {
 
     @Override
     public void beforeResourceInstallation(CustomResourcePack customPack) throws IOException {
-        if(this.menuHud != null){
+        if (this.menuHud != null) {
             customPack.register(this.menuHud);
         }
-        backgroundPictures.forEach((s, itemTextureData) -> customPack.register(itemTextureData));
     }
 
     @Override
     public void installResourceToPack(CustomResourcePack customPack) throws IOException {
-        build();
+        build(customPack);
     }
 
     public CustomMenu setDoEffects(boolean doEffects) {

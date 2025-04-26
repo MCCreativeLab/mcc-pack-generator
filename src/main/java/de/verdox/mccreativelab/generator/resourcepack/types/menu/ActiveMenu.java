@@ -6,8 +6,11 @@ import de.verdox.mccreativelab.generator.resourcepack.types.rendered.element.gro
 import de.verdox.mccreativelab.generator.resourcepack.types.rendered.element.single.SingleHudText;
 import de.verdox.mccreativelab.generator.resourcepack.types.rendered.element.single.SingleHudTexture;
 import de.verdox.mccreativelab.platform.GeneratorPlatformHelper;
+import de.verdox.mccreativelab.platform.PlatformResourcePack;
 import de.verdox.mccreativelab.wrapper.entity.types.MCCPlayer;
 import de.verdox.mccreativelab.wrapper.item.MCCItemStack;
+import de.verdox.mccreativelab.wrapper.platform.MCCPlatform;
+import de.verdox.mccreativelab.wrapper.typed.MCCDataComponentTypes;
 import io.vertx.core.impl.ConcurrentHashSet;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.sound.Sound;
@@ -114,14 +117,19 @@ public class ActiveMenu {
     }
 
     public void setBackgroundPicture(String id) {
-        if (!customMenu.getBackgroundPictures().containsKey(id))
+        if (!customMenu.getBackgroundPictureKey().containsKey(id))
             throw new IllegalArgumentException("No background picture found with id " + id);
 
-        MCCItemStack newBackgroundPicture = customMenu.getBackgroundPictures().get(id).createItem();
-        if(activeBackgroundPicture != null && activeBackgroundPicture.equals(newBackgroundPicture))
-            return;
+        if(activeBackgroundPicture == null) {
+            activeBackgroundPicture = PlatformResourcePack.INSTANCE.get().getEmptyItem().createItem();
+        }
 
-        activeBackgroundPicture = newBackgroundPicture;
+        var key = customMenu.getBackgroundPictureKey().get(id);
+        activeBackgroundPicture.components().edit(MCCDataComponentTypes.EQUIPPABLE.get(),
+                editor -> editor.with(mccEquippable ->
+                        mccEquippable.cameraOverlay().with(Optional.of(key))
+                )
+        );
         updateBackgroundPicture();
     }
 

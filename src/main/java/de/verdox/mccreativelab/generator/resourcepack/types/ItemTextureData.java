@@ -34,6 +34,8 @@ public class ItemTextureData extends ResourcePackResource {
     private final Asset<CustomResourcePack> pngFile;
     private final @Nullable ModelType modelType;
     private final boolean useVanillaTexture;
+    @Nullable
+    private Consumer<MCCItemStack> stackConsumer;
 
     public ItemTextureData(@NotNull Key namespacedKey,
                            @NotNull @MCCRequireVanillaElement MCCItemType material,
@@ -73,10 +75,17 @@ public class ItemTextureData extends ResourcePackResource {
 
     public MCCItemStack createItem() {
         var stack = material.createItem();
-        //if (customModelData != 0) {
+        if (stackConsumer != null) {
+            stackConsumer.accept(stack);
+        }
+        if (!useVanillaTexture) {
             stack.components().edit(MCCDataComponentTypes.ITEM_MODEL.get(), editor -> editor.set(key()));
-        //}
+        }
         return stack;
+    }
+
+    public void setStackConsumer(@Nullable Consumer<MCCItemStack> stackConsumer) {
+        this.stackConsumer = stackConsumer;
     }
 
     @Override
@@ -152,15 +161,15 @@ public class ItemTextureData extends ResourcePackResource {
 
         public static ModelType createModelForBlockItem(String modelName, Key blockModel) {
             return new ModelType(modelName, (namespacedKey, jsonObject) ->
-                JsonObjectBuilder.create(jsonObject).add("parent", blockModel.toString())
-                    .build());
+                    JsonObjectBuilder.create(jsonObject).add("parent", blockModel.toString())
+                            .build());
         }
 
         public static ModelType createFullCubeModel(Key resourceKey) {
             return new ModelType("minecraft:block/cube_all", (namespacedKey, jsonObject) ->
-                JsonObjectBuilder.create().add("parent", "minecraft:block/cube_all")
-                    .add("textures", JsonObjectBuilder.create().add("all", resourceKey.toString()))
-                    .build());
+                    JsonObjectBuilder.create().add("parent", "minecraft:block/cube_all")
+                            .add("textures", JsonObjectBuilder.create().add("all", resourceKey.toString()))
+                            .build());
         }
 
         public static ModelType createFullCubeWithSingleTexture(Key textureKey) {
@@ -175,8 +184,8 @@ public class ItemTextureData extends ResourcePackResource {
             });
 
             return new ModelType("", (namespacedKey, jsonObject) ->
-                JsonObjectBuilder.create(jsonObject).add("parent", "block/cube")
-                    .add("textures", textures));
+                    JsonObjectBuilder.create(jsonObject).add("parent", "block/cube")
+                            .add("textures", textures));
 
         }
 
@@ -234,121 +243,121 @@ public class ItemTextureData extends ResourcePackResource {
             }
 
             var element = JsonObjectBuilder.create()
-                .add("from", JsonArrayBuilder.create().add(posX).add(posY).add(posZ))
-                .add("to", JsonArrayBuilder.create().add(sizeX).add(sizeY).add(sizeZ))
-                .add("faces",
-                    JsonObjectBuilder.create()
-                        .add(faceName,
+                    .add("from", JsonArrayBuilder.create().add(posX).add(posY).add(posZ))
+                    .add("to", JsonArrayBuilder.create().add(sizeX).add(sizeY).add(sizeZ))
+                    .add("faces",
                             JsonObjectBuilder.create()
-                                .add("texture", "#" + faceName)
-                                .add("cullface", faceName)
-                        )
-                );
+                                    .add(faceName,
+                                            JsonObjectBuilder.create()
+                                                    .add("texture", "#" + faceName)
+                                                    .add("cullface", faceName)
+                                    )
+                    );
 
 
             return new ModelType("", (namespacedKey, jsonObject) ->
-                JsonObjectBuilder.create(jsonObject).add("parent", "block/block")
-                    .add("elements", JsonArrayBuilder.create().add(element))
-                    .add("textures",
-                        JsonObjectBuilder.create()
-                            .add("particle", namespacedKey.toString())
+                    JsonObjectBuilder.create(jsonObject).add("parent", "block/block")
+                            .add("elements", JsonArrayBuilder.create().add(element))
+                            .add("textures",
+                                    JsonObjectBuilder.create()
+                                            .add("particle", namespacedKey.toString())
 /*                                                      .add("down", emptyTexture.toString())
                                                       .add("up", emptyTexture.toString())
                                                       .add("north", emptyTexture.toString())
                                                       .add("east", emptyTexture.toString())
                                                       .add("south", emptyTexture.toString())
                                                       .add("west", emptyTexture.toString())*/
-                            .add(faceName, namespacedKey.toString())
-                    )
-                    .build());
+                                            .add(faceName, namespacedKey.toString())
+                            )
+                            .build());
         }
 
         public static ModelType useModelOfExistingItem(Key itemKey) {
             return new ModelType("minecraft:item/generated", (namespacedKey, jsonObject) ->
-                JsonObjectBuilder.create(jsonObject).add("parent", itemKey.asString())
-                    .build());
+                    JsonObjectBuilder.create(jsonObject).add("parent", itemKey.asString())
+                            .build());
         }
 
         public static final ModelType GENERATED_ITEM = new ModelType("minecraft:item/generated", (namespacedKey, jsonObject) ->
-            JsonObjectBuilder.create(jsonObject).add("parent", "minecraft:item/generated")
-                .add("textures", JsonObjectBuilder.create().add("layer0", namespacedKey.toString()))
-                .build());
+                JsonObjectBuilder.create(jsonObject).add("parent", "minecraft:item/generated")
+                        .add("textures", JsonObjectBuilder.create().add("layer0", namespacedKey.toString()))
+                        .build());
         public static final ModelType HAND_HELD = new ModelType("minecraft:item/handheld", (namespacedKey, jsonObject) ->
-            JsonObjectBuilder.create(jsonObject).add("parent", "minecraft:item/handheld")
-                .add("textures", JsonObjectBuilder.create().add("layer0", namespacedKey.toString()))
-                .build());
+                JsonObjectBuilder.create(jsonObject).add("parent", "minecraft:item/handheld")
+                        .add("textures", JsonObjectBuilder.create().add("layer0", namespacedKey.toString()))
+                        .build());
         public static final ModelType FAKE_CROP = new ModelType("minecraft:block/crop", (namespacedKey, jsonObject) ->
-            JsonObjectBuilder.create(jsonObject).add("parent", "minecraft:block/crop")
-                .add("textures", JsonObjectBuilder.create().add("crop", namespacedKey.toString()))
-                .build());
+                JsonObjectBuilder.create(jsonObject).add("parent", "minecraft:block/crop")
+                        .add("textures", JsonObjectBuilder.create().add("crop", namespacedKey.toString()))
+                        .build());
 
         public static final ModelType CUBE_ALL = new ModelType("minecraft:block/cube_all", (namespacedKey, jsonObject) ->
-            JsonObjectBuilder.create(jsonObject).add("parent", "minecraft:block/cube_all")
-                .add("textures", JsonObjectBuilder.create().add("all", namespacedKey.toString()))
-                .build());
+                JsonObjectBuilder.create(jsonObject).add("parent", "minecraft:block/cube_all")
+                        .add("textures", JsonObjectBuilder.create().add("all", namespacedKey.toString()))
+                        .build());
 
         public static final ModelType CUBE_ONLY_FACE_UP = new ModelType("minecraft:block/cube_all", (namespacedKey, jsonObject) ->
-            JsonObjectBuilder.create(jsonObject).add("parent", "minecraft:block/cube_all")
-                .add("textures", JsonObjectBuilder.create().add("all", namespacedKey.toString()))
-                .build());
+                JsonObjectBuilder.create(jsonObject).add("parent", "minecraft:block/cube_all")
+                        .add("textures", JsonObjectBuilder.create().add("all", namespacedKey.toString()))
+                        .build());
 
         public static final ModelType CLICKABLE_ITEM = new ModelType("minecraft:clickable_item", (namespacedKey, jsonObject) ->
-            JsonObjectBuilder.create(jsonObject).add("parent", "minecraft:item/generated")
-                .add("textures", JsonObjectBuilder.create().add("layer0", namespacedKey.toString()))
-                .add("", "")
-                .add("display",
-                    JsonObjectBuilder.create()
-                        .add("gui",
-                            JsonObjectBuilder.create()
-                                .add("scale", JsonArrayBuilder
-                                    .create()
-                                    .add(1)
-                                    .add(1)
-                                    .add(1)))
-                        .add("thirdperson_righthand",
-                            JsonObjectBuilder.create()
-                                .add("scale", JsonArrayBuilder
-                                    .create()
-                                    .add(0)
-                                    .add(0)
-                                    .add(0)))
-                        .add("thirdperson_lefthand",
-                            JsonObjectBuilder.create()
-                                .add("scale", JsonArrayBuilder
-                                    .create()
-                                    .add(0)
-                                    .add(0)
-                                    .add(0)))
-                        .add("firstperson_righthand",
-                            JsonObjectBuilder.create()
-                                .add("scale", JsonArrayBuilder
-                                    .create()
-                                    .add(0)
-                                    .add(0)
-                                    .add(0)))
-                        .add("firstperson_lefthand",
-                            JsonObjectBuilder.create()
-                                .add("scale", JsonArrayBuilder
-                                    .create()
-                                    .add(0)
-                                    .add(0)
-                                    .add(0)))
-                        .add("ground",
-                            JsonObjectBuilder.create()
-                                .add("scale", JsonArrayBuilder
-                                    .create()
-                                    .add(0)
-                                    .add(0)
-                                    .add(0)))
-                        .add("head",
-                            JsonObjectBuilder.create()
-                                .add("scale", JsonArrayBuilder
-                                    .create()
-                                    .add(0)
-                                    .add(0)
-                                    .add(0)))
-                )
-                .build());
+                JsonObjectBuilder.create(jsonObject).add("parent", "minecraft:item/generated")
+                        .add("textures", JsonObjectBuilder.create().add("layer0", namespacedKey.toString()))
+                        .add("", "")
+                        .add("display",
+                                JsonObjectBuilder.create()
+                                        .add("gui",
+                                                JsonObjectBuilder.create()
+                                                        .add("scale", JsonArrayBuilder
+                                                                .create()
+                                                                .add(1)
+                                                                .add(1)
+                                                                .add(1)))
+                                        .add("thirdperson_righthand",
+                                                JsonObjectBuilder.create()
+                                                        .add("scale", JsonArrayBuilder
+                                                                .create()
+                                                                .add(0)
+                                                                .add(0)
+                                                                .add(0)))
+                                        .add("thirdperson_lefthand",
+                                                JsonObjectBuilder.create()
+                                                        .add("scale", JsonArrayBuilder
+                                                                .create()
+                                                                .add(0)
+                                                                .add(0)
+                                                                .add(0)))
+                                        .add("firstperson_righthand",
+                                                JsonObjectBuilder.create()
+                                                        .add("scale", JsonArrayBuilder
+                                                                .create()
+                                                                .add(0)
+                                                                .add(0)
+                                                                .add(0)))
+                                        .add("firstperson_lefthand",
+                                                JsonObjectBuilder.create()
+                                                        .add("scale", JsonArrayBuilder
+                                                                .create()
+                                                                .add(0)
+                                                                .add(0)
+                                                                .add(0)))
+                                        .add("ground",
+                                                JsonObjectBuilder.create()
+                                                        .add("scale", JsonArrayBuilder
+                                                                .create()
+                                                                .add(0)
+                                                                .add(0)
+                                                                .add(0)))
+                                        .add("head",
+                                                JsonObjectBuilder.create()
+                                                        .add("scale", JsonArrayBuilder
+                                                                .create()
+                                                                .add(0)
+                                                                .add(0)
+                                                                .add(0)))
+                        )
+                        .build());
     }
 
     public MCCItemType getMaterial() {

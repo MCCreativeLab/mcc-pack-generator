@@ -74,17 +74,8 @@ public abstract class MenuBehaviour {
 
         this.posUpdaterTask = MCCPlatform.getInstance().getTaskManager().runTimerAsync((task) -> {
             player.getInventory().setHeldItemSlot(4);
-            fakeContents[45] = activeMenu.getActiveBackgroundPicture();
+            fakeContents[5] = activeMenu.getActiveBackgroundPicture();
             player.getInventory().sendFakeContents(fakeContents);
-
-            if (!activeMenu.getCustomMenu().doYawPitchLock && !activeMenu.getCustomMenu().doPositionLoc)
-                return;
-
-            if (player.getLocation().yaw() == 0 && player.getLocation().pitch() == -90 && activeMenu.getCustomMenu().doYawPitchLock)
-                return;
-
-            if (locationOnOpen != null)
-                player.teleport(locationOnOpen);
         }, 0L, 50L, TimeUnit.MILLISECONDS);
 
         if (activeMenu.getCustomMenu().doEffects) {
