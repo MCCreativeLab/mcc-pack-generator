@@ -19,7 +19,11 @@ import de.verdox.mccreativelab.wrapper.registry.OpenRegistry;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.Keyed;
 
+import java.util.logging.Logger;
+
 public class ResourcePackMapper {
+    private static final Logger LOGGER = Logger.getLogger(ResourcePackMapper.class.getSimpleName());
+
     private MCCReference<OpenRegistry<CustomGUIBuilder>> guiRegistry;
     private MCCReference<OpenRegistry<CustomHud>> hudRegistry;
     private MCCReference<OpenRegistry<ItemTextureData>> itemTextureRegistry;
@@ -31,6 +35,7 @@ public class ResourcePackMapper {
     private MCCReference<OpenRegistry<Font>> fontRegistry;
 
     void init() {
+        LOGGER.info("Creating registries");
         guiRegistry = createRegistry("gui");
         hudRegistry = createRegistry("hud");
         itemTextureRegistry = createRegistry("item_textures");
@@ -64,6 +69,7 @@ public class ResourcePackMapper {
     }
 
     void clear() {
+        LOGGER.info("Clearing registries");
         clearRegistry(guiRegistry);
         clearRegistry(hudRegistry);
         clearRegistry(itemTextureRegistry);
@@ -96,5 +102,41 @@ public class ResourcePackMapper {
 
     private <T> void clearRegistry(MCCReference<OpenRegistry<T>> reference) {
         MCCPlatform.getInstance().getRegistryStorage().deleteCustomMinecraftRegistry(reference.unwrapKey().get().key());
+    }
+
+    public MCCReference<OpenRegistry<CustomGUIBuilder>> getGuiRegistry() {
+        return guiRegistry;
+    }
+
+    public MCCReference<OpenRegistry<CustomHud>> getHudRegistry() {
+        return hudRegistry;
+    }
+
+    public MCCReference<OpenRegistry<ItemTextureData>> getItemTextureRegistry() {
+        return itemTextureRegistry;
+    }
+
+    public MCCReference<OpenRegistry<ModelFile>> getModelRegistry() {
+        return modelRegistry;
+    }
+
+    public MCCReference<OpenRegistry<ShaderRendered>> getShaderRenderedRegistry() {
+        return shaderRenderedRegistry;
+    }
+
+    public MCCReference<OpenRegistry<SoundData>> getSoundRegistry() {
+        return soundRegistry;
+    }
+
+    public MCCReference<OpenRegistry<CustomMenu>> getMenuRegistry() {
+        return menuRegistry;
+    }
+
+    public MCCReference<OpenRegistry<LanguageFile>> getLanguageFileRegistry() {
+        return languageFileRegistry;
+    }
+
+    public MCCReference<OpenRegistry<Font>> getFontRegistry() {
+        return fontRegistry;
     }
 }
