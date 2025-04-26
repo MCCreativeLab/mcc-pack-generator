@@ -13,14 +13,18 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public abstract class MenuBehaviour {
+    private static final Logger LOGGER = Logger.getLogger(MenuBehaviour.class.getSimpleName());
+
     private static final int tickCooldown = 3;
     private final MCCPlayer player;
     private final ActiveMenu activeMenu;
     private final BiConsumer<PlayerKeyInput, ActiveMenu> consumer;
     private final Runnable onEnd;
-    private MCCTask posUpdaterTask;
+    private MCCTask menuViewTask;
     private MCCTask effectTask;
     private MCCTask checkerTask;
     private MCCLocation locationBefore;
@@ -49,45 +53,57 @@ public abstract class MenuBehaviour {
 
         player.getTempData().storeData("hasMenuOpen", false);
 
-        MCCLocation locationOnOpen = getLocationOnOpen();
-
         this.checkerTask = MCCPlatform.getInstance().getTaskManager().runTimerAsync(mccTask -> {
-            if(player.isDead() || !player.isOnline()){
+            if (player.isDead() || !player.isOnline()) {
                 close();
                 return;
             }
+            try {
+                if (activeMenu.getCustomMenu().doFakeTime)
+                    player.getTimeProperty().set(6000L);
+                if (activeMenu.getCustomMenu().doFakeWeather)
+                    player.getWeatherProperty().set(Weather.CLEAR);
 
-            if (activeMenu.getCustomMenu().doFakeTime)
-                player.getTimeProperty().set(6000L);
-            if (activeMenu.getCustomMenu().doFakeWeather)
-                player.getWeatherProperty().set(Weather.CLEAR);
-
-            player.getPickupItemProperty().set(false);
-            player.getInventoryClickProperty().set(false);
-            player.getInventoryInteractProperty().set(false);
-            player.getSwapHandsProperty().set(false);
-            player.getInteractProperty().set(false);
-            player.getPickupItemProperty().set(false);
-            player.getUntargetableProperty().addAllPossibilities();
-            player.getDamageImmunityProperty().addAllPossibilities();
+                player.getPickupItemProperty().set(false);
+                player.getInventoryClickProperty().set(false);
+                player.getInventoryInteractProperty().set(false);
+                player.getSwapHandsProperty().set(false);
+                player.getInteractProperty().set(false);
+                player.getPickupItemProperty().set(false);
+                player.getUntargetableProperty().addAllPossibilities();
+                player.getDamageImmunityProperty().addAllPossibilities();
+            } catch (Exception e) {
+                LOGGER.log(Level.SEVERE, "An error occurred in the checker task: " + e.getMessage());
+                this.checkerTask.cancel();
+            }
         }, 0L, 1L, TimeUnit.SECONDS);
 
-        this.posUpdaterTask = MCCPlatform.getInstance().getTaskManager().runTimerAsync((task) -> {
-            player.getInventory().setHeldItemSlot(4);
-            fakeContents[5] = activeMenu.getActiveBackgroundPicture();
-            player.getInventory().sendFakeContents(fakeContents);
-        }, 0L, 50L, TimeUnit.MILLISECONDS);
+        this.menuViewTask = MCCPlatform.getInstance().getTaskManager().runTimerAsync((task) -> {
+            try {
+                player.getInventory().setHeldItemSlot(4);
+                fakeContents[5] = activeMenu.getActiveBackgroundPicture();
+                player.getInventory().sendFakeContents(fakeContents);
+            }
+            catch (Exception e) {
+                LOGGER.log(Level.SEVERE, "An error occurred in the menuViewTask task: " + e.getMessage());
+                this.menuViewTask.cancel();
+            }
+        }, 0L, 1L, TimeUnit.MILLISECONDS);
 
         if (activeMenu.getCustomMenu().doEffects) {
             this.effectTask = MCCPlatform.getInstance().getTaskManager().runTimerAsync(mccTask -> {
-
-                MCCEffect slowness = MCCEffects.MOVEMENT_SLOWDOWN.get().create(20, 3, false, false, false, null);
-                MCCEffect fatigue = MCCEffects.DIG_SLOWDOWN.get().create(20, -1, false, false, false, null);
-                MCCEffect blind = MCCEffects.BLINDNESS.get().create(40, 1, false, false, false, null);
-                slowness.apply(player);
-                fatigue.apply(player);
-                blind.apply(player);
-
+                try {
+                    MCCEffect slowness = MCCEffects.MOVEMENT_SLOWDOWN.get().create(20, 3, false, false, false, null);
+                    MCCEffect fatigue = MCCEffects.DIG_SLOWDOWN.get().create(20, -1, false, false, false, null);
+                    MCCEffect blind = MCCEffects.BLINDNESS.get().create(40, 1, false, false, false, null);
+                    slowness.apply(player);
+                    fatigue.apply(player);
+                    blind.apply(player);
+                }
+                catch (Exception e) {
+                    LOGGER.log(Level.SEVERE, "An error occurred in the effect task: " + e.getMessage());
+                    this.effectTask.cancel();
+                }
             }, 0L, 1, TimeUnit.SECONDS);
         }
     }
@@ -118,8 +134,8 @@ public abstract class MenuBehaviour {
         player.getUntargetableProperty().sync();
         player.getDamageImmunityProperty().sync();
 
-        if (posUpdaterTask != null)
-            posUpdaterTask.cancel();
+        if (menuViewTask != null)
+            menuViewTask.cancel();
         if (checkerTask != null)
             checkerTask.cancel();
         if (effectTask != null)
@@ -136,24 +152,24 @@ public abstract class MenuBehaviour {
         }
     }
 
-    public void handleInput(Input input){
-        if(input.isForward())
+    public void handleInput(Input input) {
+        if (input.isForward())
             triggerKeyInput(PlayerKeyInput.FORWARD);
-        if(input.isBackward())
+        if (input.isBackward())
             triggerKeyInput(PlayerKeyInput.BACKWARD);
-        if(input.isLeft())
+        if (input.isLeft())
             triggerKeyInput(PlayerKeyInput.LEFT);
-        if(input.isRight())
+        if (input.isRight())
             triggerKeyInput(PlayerKeyInput.RIGHT);
-        if(input.isJump())
+        if (input.isJump())
             triggerKeyInput(PlayerKeyInput.SPACE);
-        if(input.isSneak())
+        if (input.isSneak())
             triggerKeyInput(PlayerKeyInput.SNEAK);
-        if(input.isSprint())
+        if (input.isSprint())
             triggerKeyInput(PlayerKeyInput.SPRINT);
     }
 
-    public void handleHotBarScrolling(int currentTick, int oldIndex, int newIndex){
+    public void handleHotBarScrolling(int currentTick, int oldIndex, int newIndex) {
         var difference = currentTick - lastScrollTick;
         lastScrollTick = currentTick;
         if (difference <= 2) {
