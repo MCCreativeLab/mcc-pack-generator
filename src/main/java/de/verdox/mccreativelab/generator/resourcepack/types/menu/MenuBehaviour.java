@@ -1,12 +1,14 @@
 package de.verdox.mccreativelab.generator.resourcepack.types.menu;
 
 import de.verdox.mccreativelab.wrapper.entity.MCCEffect;
+import de.verdox.mccreativelab.wrapper.entity.MCCEntityType;
 import de.verdox.mccreativelab.wrapper.entity.types.MCCPlayer;
 import de.verdox.mccreativelab.wrapper.entity.player.Input;
 import de.verdox.mccreativelab.wrapper.item.MCCItemStack;
 import de.verdox.mccreativelab.wrapper.platform.MCCPlatform;
 import de.verdox.mccreativelab.wrapper.platform.MCCTask;
 import de.verdox.mccreativelab.wrapper.typed.MCCEffects;
+import de.verdox.mccreativelab.wrapper.typed.MCCEntityTypes;
 import de.verdox.mccreativelab.wrapper.world.MCCLocation;
 import de.verdox.mccreativelab.wrapper.world.Weather;
 import org.jetbrains.annotations.Nullable;
@@ -41,15 +43,15 @@ public abstract class MenuBehaviour {
     }
 
     public void start() {
-        if (activeMenu.getCustomMenu().hideOtherPlayers) {
-            for (MCCPlayer onlinePlayer : MCCPlatform.getInstance().getOnlinePlayers()) {
-                player.getHideProperty().add(onlinePlayer);
-            }
-        }
-
         MCCItemStack[] fakeContents = new MCCItemStack[46];
         heldSlotBefore = player.getInventory().getHeldItemSlot();
         locationBefore = player.getLocation();
+
+        player.getLocation().world().
+
+        MCCLocation spawnLocation = new MCCLocation(player.getLocation().world(), player.getLocation().)
+
+        MCCEntityTypes.MARKER.get().summon(player.getLocation().);
 
         player.getTempData().storeData("hasMenuOpen", false);
 
@@ -64,14 +66,13 @@ public abstract class MenuBehaviour {
                 if (activeMenu.getCustomMenu().doFakeWeather)
                     player.getWeatherProperty().set(Weather.CLEAR);
 
-                player.getPickupItemProperty().set(false);
+/*                player.getPickupItemProperty().set(false);
                 player.getInventoryClickProperty().set(false);
                 player.getInventoryInteractProperty().set(false);
                 player.getSwapHandsProperty().set(false);
                 player.getInteractProperty().set(false);
-                player.getPickupItemProperty().set(false);
                 player.getUntargetableProperty().addAllPossibilities();
-                player.getDamageImmunityProperty().addAllPossibilities();
+                player.getDamageImmunityProperty().addAllPossibilities();*/
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, "An error occurred in the checker task: " + e.getMessage());
                 this.checkerTask.cancel();
@@ -106,6 +107,14 @@ public abstract class MenuBehaviour {
                 }
             }, 0L, 1, TimeUnit.SECONDS);
         }
+
+        // Put Player in spectator mode
+        // Set Spectator target of player. Prevent Sneak Exit.
+        if (activeMenu.getCustomMenu().hideOtherPlayers) {
+            for (MCCPlayer onlinePlayer : MCCPlatform.getInstance().getOnlinePlayers()) {
+                player.getHideProperty().add(onlinePlayer);
+            }
+        }
     }
 
     private @Nullable MCCLocation getLocationOnOpen() {
@@ -123,17 +132,6 @@ public abstract class MenuBehaviour {
 
         player.syncInventory();
 
-        player.getTimeProperty().sync();
-        player.getWeatherProperty().sync();
-        player.getPickupItemProperty().sync();
-        player.getInventoryClickProperty().sync();
-        player.getInventoryInteractProperty().sync();
-        player.getSwapHandsProperty().sync();
-        player.getInteractProperty().sync();
-        player.getPickupItemProperty().sync();
-        player.getUntargetableProperty().sync();
-        player.getDamageImmunityProperty().sync();
-
         if (menuViewTask != null)
             menuViewTask.cancel();
         if (checkerTask != null)
@@ -150,6 +148,17 @@ public abstract class MenuBehaviour {
                 player.getHideProperty().remove(onlinePlayer);
             }
         }
+
+        player.getTimeProperty().sync();
+        player.getWeatherProperty().sync();
+        player.getPickupItemProperty().sync();
+        player.getInventoryClickProperty().sync();
+        player.getInventoryInteractProperty().sync();
+        player.getSwapHandsProperty().sync();
+        player.getInteractProperty().sync();
+        player.getPickupItemProperty().sync();
+        player.getUntargetableProperty().sync();
+        player.getDamageImmunityProperty().sync();
     }
 
     public void handleInput(Input input) {
@@ -194,5 +203,18 @@ public abstract class MenuBehaviour {
     private void triggerKeyInput(PlayerKeyInput playerKeyInput) {
         consumer.accept(playerKeyInput, activeMenu);
     }
+
+    /**
+     * The platform that implements the behavior must make sure that the following is guaranteed:
+     * <p> - The player is not allowed to leave the entity they are spectating
+     * <p> - When the player leaves the server the original game mode has to be restored
+     * <p> -
+     */
+    protected abstract void capturePlayerInSpectatorMode(MCCPlayer player);
+
+    /**
+     * Indicates the implementation that this player is not marked anymore
+     */
+    protected abstract void freePlayerFromSpectatorMode(MCCPlayer player);
 
 }

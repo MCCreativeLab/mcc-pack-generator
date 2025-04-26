@@ -69,7 +69,6 @@ public class PlayerHudRendererData {
 
     public Component buildRendering() {
         if (this.needsUpdate.get()) {
-
             this.needsUpdate.set(false);
         }
 
