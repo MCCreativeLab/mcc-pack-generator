@@ -5,6 +5,8 @@ import de.verdox.mccreativelab.generator.Asset;
 import de.verdox.mccreativelab.generator.AssetPath;
 import de.verdox.mccreativelab.generator.CustomPack;
 import de.verdox.mccreativelab.generator.Resource;
+import de.verdox.mccreativelab.generator.resourcepack.debug.DebugHud;
+import de.verdox.mccreativelab.generator.resourcepack.debug.DebugMenu;
 import de.verdox.mccreativelab.generator.resourcepack.types.ItemTextureData;
 import de.verdox.mccreativelab.generator.resourcepack.types.lang.LanguageFile;
 import de.verdox.mccreativelab.generator.resourcepack.types.lang.Translatable;
@@ -36,6 +38,9 @@ public class CustomResourcePack extends CustomPack<CustomResourcePack> {
     private final ResourcePackMapper resourcePackMapper = new ResourcePackMapper();
     private final List<File> includedResourcePacks = new LinkedList<>();
     private ItemTextureData emptyItem;
+
+    public final DebugHud debugHud = new DebugHud(Key.key("mcc", "debug_hud"));
+    public final DebugMenu debugMenu = new DebugMenu(Key.key("mcc", "debug_menu"));
 
     public CustomResourcePack(String packName, int packFormat, String description, AssetPath savePath, File templateFolder, File dataFolder) {
         super(packName, packFormat, description, savePath, templateFolder, dataFolder);
@@ -127,6 +132,8 @@ public class CustomResourcePack extends CustomPack<CustomResourcePack> {
     @Override
     public File installPack(boolean reload) throws IOException {
         register(getEmptyItem());
+        register(debugHud);
+        register(debugMenu);
         File file = super.installPack(reload);
         globalAssetInstallation();
         return file;
