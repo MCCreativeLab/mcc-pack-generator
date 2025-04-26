@@ -132,12 +132,12 @@ public class CustomResourcePack extends CustomPack<CustomResourcePack> {
     }
 
     private void globalAssetInstallation() throws IOException {
-        for (Map.Entry<MCCItemType, Set<ItemTextureData>> materialSetEntry : itemTextureDataPerMaterial.entrySet()) {
+/*        for (Map.Entry<MCCItemType, Set<ItemTextureData>> materialSetEntry : itemTextureDataPerMaterial.entrySet()) {
             MCCItemType material = materialSetEntry.getKey();
             material.requireVanilla();
             Set<ItemTextureData> itemTextureDataSet = materialSetEntry.getValue();
             ItemTextureData.createVanillaModelFile(material, itemTextureDataSet, this);
-        }
+        }*/
         for (Map.Entry<MCCBlockState, Set<AlternateBlockStateModel>> materialSetEntry : alternateBlockStateModels.entrySet()) {
             MCCBlockState material = materialSetEntry.getKey();
             material.requireVanilla();
