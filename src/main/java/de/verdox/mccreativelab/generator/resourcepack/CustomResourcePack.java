@@ -7,6 +7,7 @@ import de.verdox.mccreativelab.generator.CustomPack;
 import de.verdox.mccreativelab.generator.Resource;
 import de.verdox.mccreativelab.generator.resourcepack.debug.DebugHud;
 import de.verdox.mccreativelab.generator.resourcepack.debug.DebugMenu;
+import de.verdox.mccreativelab.generator.resourcepack.extensions.Fade;
 import de.verdox.mccreativelab.generator.resourcepack.types.ItemTextureData;
 import de.verdox.mccreativelab.generator.resourcepack.types.lang.LanguageFile;
 import de.verdox.mccreativelab.generator.resourcepack.types.lang.Translatable;
@@ -39,8 +40,8 @@ public class CustomResourcePack extends CustomPack<CustomResourcePack> {
     private final List<File> includedResourcePacks = new LinkedList<>();
     private ItemTextureData emptyItem;
 
-    public final DebugHud debugHud = new DebugHud(Key.key("mcc", "debug_hud"));
-    public final DebugMenu debugMenu = new DebugMenu(Key.key("mcc", "debug_menu"));
+    public final DebugHud debugHud = new DebugHud(Key.key("mccreativelab", "debug_hud"));
+    public final DebugMenu debugMenu = new DebugMenu(Key.key("mccreativelab", "debug_menu"));
 
     public CustomResourcePack(String packName, int packFormat, String description, AssetPath savePath, File templateFolder, File dataFolder) {
         super(packName, packFormat, description, savePath, templateFolder, dataFolder);
@@ -57,20 +58,20 @@ public class CustomResourcePack extends CustomPack<CustomResourcePack> {
         }
     }
 
-    public void includeThirdPartyResourcePack(Asset<CustomResourcePack> zipFile){
+    public void includeThirdPartyResourcePack(Asset<CustomResourcePack> zipFile) {
         File includedResourcePack = ZipUtil.extractFilesFromZipFileResource(zipFile.assetInputStream(), CustomResourcePack.resourcePacksFolder.toPath().toString());
         includedResourcePacks.add(includedResourcePack);
     }
 
     public ItemTextureData getEmptyItem() {
-        if(emptyItem == null) {
+        if (emptyItem == null) {
             emptyItem = EMPTY_ITEM();
         }
         return emptyItem;
     }
 
     public static ItemTextureData EMPTY_ITEM() {
-        if(EMPTY_ITEM == null) {
+        if (EMPTY_ITEM == null) {
             EMPTY_ITEM = new ItemTextureData(Key.key("mccreativelab", "item/empty_item"), MCCItems.GRAY_STAINED_GLASS_PANE.get(), 0, new Asset<>("/empty.png"), null);
         }
         return EMPTY_ITEM;
@@ -131,12 +132,17 @@ public class CustomResourcePack extends CustomPack<CustomResourcePack> {
 
     @Override
     public File installPack(boolean reload) throws IOException {
-        register(getEmptyItem());
-        register(debugHud);
-        register(debugMenu);
+        installAdditionalContent();
         File file = super.installPack(reload);
         globalAssetInstallation();
         return file;
+    }
+
+    private void installAdditionalContent() {
+        register(getEmptyItem());
+        register(debugHud);
+        register(debugMenu);
+        Fade.register(this);
     }
 
     private void globalAssetInstallation() throws IOException {
@@ -170,11 +176,11 @@ public class CustomResourcePack extends CustomPack<CustomResourcePack> {
             }).addSoundData(soundData);
         if (resource instanceof ItemTextureData itemTextureData)
             itemTextureDataPerMaterial.computeIfAbsent(itemTextureData.getMaterial(), material -> new HashSet<>())
-                                      .add(itemTextureData);
+                    .add(itemTextureData);
         if (resource instanceof AlternateBlockStateModel alternateBlockStateModel) {
             alternateBlockStateModels
-                .computeIfAbsent(alternateBlockStateModel.getBlockData(), material -> new HashSet<>())
-                .add(alternateBlockStateModel);
+                    .computeIfAbsent(alternateBlockStateModel.getBlockData(), material -> new HashSet<>())
+                    .add(alternateBlockStateModel);
         }
         if (resource instanceof LanguageFile languageFile) {
 
@@ -186,20 +192,20 @@ public class CustomResourcePack extends CustomPack<CustomResourcePack> {
     public void createDescriptionFile() throws IOException {
         JsonObjectBuilder languagesJson = JsonObjectBuilder.create();
         languageStorage
-            .getCustomTranslations()
-            .stream().map(Translation::languageInfo).forEach(languageInfo -> {
-                languagesJson.add(languageInfo.identifier(),
-                    JsonObjectBuilder.create().add("name", languageInfo.name())
-                                     .add("region", languageInfo.region())
-                                     .add("bidirectional", languageInfo.bidirectional()));
-            });
+                .getCustomTranslations()
+                .stream().map(Translation::languageInfo).forEach(languageInfo -> {
+                    languagesJson.add(languageInfo.identifier(),
+                            JsonObjectBuilder.create().add("name", languageInfo.name())
+                                    .add("region", languageInfo.region())
+                                    .add("bidirectional", languageInfo.bidirectional()));
+                });
 
         var mcMetaPreset = JsonObjectBuilder.create().add("language", languagesJson).build();
 
         JsonObjectBuilder.create(mcMetaPreset).add("pack",
-            JsonObjectBuilder.create()
-                             .add("pack_format", packFormat)
-                             .add("description", description)
+                JsonObjectBuilder.create()
+                        .add("pack_format", packFormat)
+                        .add("description", description)
         );
         JsonUtil.writeJsonObjectToFile(mcMetaPreset, pathToSavePackDataTo.concatPath("pack.mcmeta").toPath().toFile());
     }
