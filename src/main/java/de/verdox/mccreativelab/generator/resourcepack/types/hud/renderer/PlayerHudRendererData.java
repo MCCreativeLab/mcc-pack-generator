@@ -12,8 +12,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class PlayerHudRendererData {
+    private static final Logger LOGGER = Logger.getLogger(PlayerHudRendererData.class.getSimpleName());
+
     private final Map<Key, ActiveHud> cache = new ConcurrentHashMap<>();
     private final AtomicBoolean needsUpdate = new AtomicBoolean(true);
     private Component lastRendered;
@@ -45,8 +49,10 @@ public class PlayerHudRendererData {
 
     public void addToRendering(CustomHud customHud) {
         var activeHud = new ActiveHud(player, customHud);
-        if (cache.containsKey(activeHud.getComponentRendered().key()))
+        if (cache.containsKey(activeHud.getComponentRendered().key())) {
+            LOGGER.log(Level.SEVERE, "Trying to start hud " + customHud.key() + " twice for " + player + ".");
             return;
+        }
         cache.put(activeHud.getComponentRendered().key(), activeHud);
         this.needsUpdate.set(true);
     }
@@ -60,8 +66,10 @@ public class PlayerHudRendererData {
     }
 
     public boolean removeFromRendering(CustomHud customHud) {
-        if (!cache.containsKey(customHud.key()))
+        if (!cache.containsKey(customHud.key())) {
+            LOGGER.log(Level.SEVERE, "Trying to stop hud " + customHud.key() + " for " + player + " even tho they have no active hud.");
             return false;
+        }
         cache.remove(customHud.key());
         this.needsUpdate.set(true);
         return true;
