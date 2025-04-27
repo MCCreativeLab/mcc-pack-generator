@@ -82,7 +82,7 @@ public class ResourcePackMapper {
     }
 
     private <T> MCCReference<OpenRegistry<T>> createRegistry(String name) {
-        return MCCPlatform.getInstance().getRegistryStorage().createOpenRegistry(Key.key("mcc", name));
+        return MCCPlatform.getInstance().getRegistryStorage().createOpenRegistry(Key.key("mccreativelab", name));
     }
 
     private <T> MCCReference<T> register(T value, Key key, MCCReference<OpenRegistry<T>> registry) {
