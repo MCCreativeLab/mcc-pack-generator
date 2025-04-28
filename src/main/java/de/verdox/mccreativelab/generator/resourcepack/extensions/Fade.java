@@ -19,7 +19,7 @@ public class Fade {
 
     public static void register(CustomResourcePack customResourcePack) {
         Font font = new Font(FADE_FONT_KEY);
-        AssetBasedResourcePackResource assetBasedResourcePackResource = new AssetBasedResourcePackResource(FADE_FONT_KEY, new Asset<>(() -> Fade.class.getResourceAsStream("/fade//fade.png")), ResourcePackAssetTypes.TEXTURES, "png");
+        AssetBasedResourcePackResource assetBasedResourcePackResource = new AssetBasedResourcePackResource(FADE_FONT_KEY, new Asset<>(() -> Fade.class.getResourceAsStream("/fade/fade.png")), ResourcePackAssetTypes.TEXTURES, "png");
         font.addBitMap(new BitMap(assetBasedResourcePackResource, 1280, 128, "\uE001"));
         customResourcePack.register(font);
         customResourcePack.register(assetBasedResourcePackResource);
