@@ -20,7 +20,7 @@ public class ItemModelDefinition extends ResourcePackResource {
         JsonObject items = JsonObjectBuilder.create()
                 .add("model", JsonObjectBuilder.create()
                         .add("type", "minecraft:model")
-                        .add("model", key().asString())
+                        .add("model", key().namespace()+":item/"+ key().value())
                 ).build();
         AssetUtil.createJsonAssetAndInstall(items, customPack, key(), ResourcePackAssetTypes.ITEMS);
     }

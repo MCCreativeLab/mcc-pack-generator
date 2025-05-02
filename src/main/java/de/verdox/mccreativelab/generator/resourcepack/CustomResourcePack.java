@@ -72,7 +72,7 @@ public class CustomResourcePack extends CustomPack<CustomResourcePack> {
 
     public static ItemTextureData EMPTY_ITEM() {
         if (EMPTY_ITEM == null) {
-            EMPTY_ITEM = new ItemTextureData(Key.key("mccreativelab", "item/empty_item"), MCCItems.GRAY_STAINED_GLASS_PANE.get(), 0, new Asset<>("/empty.png"), null);
+            EMPTY_ITEM = new ItemTextureData(Key.key("mccreativelab", "empty_item"), MCCItems.GRAY_STAINED_GLASS_PANE.get(), 0, new Asset<>("/empty.png"), null);
         }
         return EMPTY_ITEM;
     }

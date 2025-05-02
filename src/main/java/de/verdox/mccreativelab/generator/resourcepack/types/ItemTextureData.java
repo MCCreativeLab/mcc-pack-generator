@@ -98,15 +98,16 @@ public class ItemTextureData extends ResourcePackResource {
     public void installResourceToPack(CustomResourcePack customPack) throws IOException {
         var hasCustomTexture = pngFile != null;
 
-        if (hasCustomTexture)
-            pngFile.installAsset(customPack, key(), ResourcePackAssetTypes.TEXTURES, "png");
+        if (hasCustomTexture) {
+            pngFile.installAsset(customPack, Key.key(key().namespace() + ":item/" + key().value()), ResourcePackAssetTypes.TEXTURES, "png");
+        }
 
         createModelFile(customPack);
     }
 
     private void createModelFile(CustomResourcePack customPack) {
-        JsonObject jsonToWriteToFile = createModelJson(this.material, key(), modelType);
-        AssetUtil.createJsonAssetAndInstall(jsonToWriteToFile, customPack, key(), ResourcePackAssetTypes.MODELS);
+        JsonObject jsonToWriteToFile = createModelJson(this.material, Key.key(key().namespace() + ":item/" + key().value()), modelType);
+        AssetUtil.createJsonAssetAndInstall(jsonToWriteToFile, customPack, Key.key(key().namespace() + ":item/" + key().value()), ResourcePackAssetTypes.MODELS);
 
 /*        JsonObject items = JsonObjectBuilder.create()
                         .add("model", JsonObjectBuilder.create()
