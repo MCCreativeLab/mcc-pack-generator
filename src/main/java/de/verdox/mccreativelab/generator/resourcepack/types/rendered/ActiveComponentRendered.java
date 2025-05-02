@@ -65,7 +65,7 @@ public abstract class ActiveComponentRendered<T extends ActiveComponentRendered<
         this.tempData.putAll(activeGUI.tempData);
     }
 
-    @Nullable
+
     public <R> R getTemporaryDataOrDefault(String key, Class<? extends R> type, R defaultVal) {
         return type.cast(tempData.getOrDefault(key, defaultVal));
     }
