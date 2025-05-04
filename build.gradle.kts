@@ -1,5 +1,6 @@
 plugins {
     id("java")
+    id("java-library")
     `maven-publish`
 
     // Nothing special about this, just keep it up to date
@@ -20,19 +21,20 @@ repositories {
 
 dependencies {
     //compileOnly("de.verdox.mccreativelab:mcc-util:" + providers.gradleProperty("version").get())
-    compileOnly("de.verdox.mccreativelab.mcc-wrapper:api:" + providers.gradleProperty("version").get())
-    compileOnly("de.verdox:vserializer:1.2.3-SNAPSHOT")
-    compileOnly("org.jetbrains:annotations:26.0.1")
-    compileOnly("io.vertx:vertx-core:4.5.10")
-    compileOnly("com.hierynomus:sshj:0.38.0")
-    compileOnly("org.tukaani:xz:1.9")
-    compileOnly("commons-io:commons-io:2.17.0")
-    compileOnly("com.google.code.gson:gson:2.11.0")
-    compileOnly("net.kyori:adventure-api:4.17.0")
-    compileOnly("org.apache.commons:commons-lang3:3.17.0")
-    compileOnly("ws.schild:jave-all-deps:3.5.0")
-    compileOnly("com.google.guava:guava:33.3.1-jre")
-    compileOnly("org.apache.commons:commons-compress:1.27.1")
+    api("de.verdox.mccreativelab.mcc-wrapper:api:" + providers.gradleProperty("version").get())
+
+    api("de.verdox:vserializer:1.2.3-SNAPSHOT")
+    api("org.jetbrains:annotations:26.0.1")
+    api("io.vertx:vertx-core:4.5.10")
+    api("com.hierynomus:sshj:0.38.0")
+    api("org.tukaani:xz:1.9")
+    api("commons-io:commons-io:2.17.0")
+    api("com.google.code.gson:gson:2.11.0")
+    api("net.kyori:adventure-api:4.17.0")
+    api("org.apache.commons:commons-lang3:3.17.0")
+    api("ws.schild:jave-all-deps:3.5.0")
+    api("com.google.guava:guava:33.3.1-jre")
+    api("org.apache.commons:commons-compress:1.27.1")
 
 
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
