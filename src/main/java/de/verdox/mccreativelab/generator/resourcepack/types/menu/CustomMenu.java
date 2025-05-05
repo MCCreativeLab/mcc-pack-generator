@@ -21,7 +21,7 @@ import java.util.logging.Logger;
 
 public class CustomMenu extends ResourcePackResource {
     public static final Logger LOGGER = Logger.getLogger(CustomMenu.class.getName());
-    private Consumer<ActiveMenu> onClose;
+    private Consumer<ActiveMenu> onClose = activeMenu -> {};
     private final Map<String, Key> backgroundPictures = new HashMap<>();
     private final Map<String, MenuState> states = new HashMap<>();
     private final Set<PlayerKeyInput> cancelledGameInputs = new HashSet<>();
