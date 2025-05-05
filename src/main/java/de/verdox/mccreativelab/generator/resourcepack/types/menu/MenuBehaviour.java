@@ -86,7 +86,7 @@ public abstract class MenuBehaviour {
         }, 0L, 1L, TimeUnit.MILLISECONDS);
 
         if (activeMenu.getCustomMenu().doEffects) {
-            this.effectTask = MCCPlatform.getInstance().getTaskManager().runTimerAsync(mccTask -> {
+            this.effectTask = MCCPlatform.getInstance().getTaskManager().runTimerOnTickThread(mccTask -> {
                 try {
                     MCCEffect slowness = MCCEffects.MOVEMENT_SLOWDOWN.get().create(20, 3, false, false, false, null);
                     MCCEffect fatigue = MCCEffects.DIG_SLOWDOWN.get().create(20, -1, false, false, false, null);
