@@ -131,11 +131,11 @@ public class GUIUtil {
                 counter++;
             }
 
-            if (currentlyRenderedPage != currentPage) {
-                for (int i = counter; i < slotsForElements.length; i++) {
-                    activeGUI.removeClickableItem(slotsForElements[i]);
-                }
+            for (int i = counter; i < slotsForElements.length; i++) {
+                activeGUI.removeClickableItem(slotsForElements[i]);
+            }
 
+            if (currentlyRenderedPage != currentPage) {
                 if (hasNextPage(activeGUI, elements)) {
                     activeGUI.addClickableItem(nextPageIndex, createNextPage(activeGUI, elements));
                 }
@@ -268,19 +268,23 @@ public class GUIUtil {
                 index++;
             }
 
-            if (currentlyRenderedSkipIndex != skipped) {
-                for (int i = index; i < slotsForElements.length; i++) {
-                    activeGUI.removeClickableItem(slotsForElements[i]);
-                }
+            for (int i = index; i < slotsForElements.length; i++) {
+                activeGUI.removeClickableItem(slotsForElements[i]);
+            }
 
-                if (canScrollLeft(activeGUI, elements))
+            if (currentlyRenderedSkipIndex != skipped) {
+                if (canScrollLeft(activeGUI, elements)) {
                     activeGUI.addClickableItem(scrollToLeftIndex, createScrollLeftButton(elements));
-                else
+                }
+                else {
                     activeGUI.removeClickableItem(scrollToLeftIndex);
-                if (canScrollRight(activeGUI, elements))
+                }
+                if (canScrollRight(activeGUI, elements)) {
                     activeGUI.addClickableItem(scrollToRightIndex, createScrollRightButton(elements));
-                else
+                }
+                else {
                     activeGUI.removeClickableItem(scrollToRightIndex);
+                }
                 currentlyRenderedSkipIndex = skipped;
             }
 
