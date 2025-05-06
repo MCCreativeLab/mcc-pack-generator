@@ -47,11 +47,10 @@ public interface ClickableItem {
                 return;
             }
             if (tick % 20 == 0) {
-                lastVariantId += 1;
                 if (lastVariantId >= variants.size()) {
                     lastVariantId = 0;
                 }
-                showInGui(activeGUI, index, lastVariantId);
+                showInGui(activeGUI, index, lastVariantId++);
             }
         }
 
@@ -143,7 +142,7 @@ public interface ClickableItem {
         }
 
         public ClickableItem build() {
-            if(variants.isEmpty()) {
+            if (variants.isEmpty()) {
                 withItem(CustomResourcePack.EMPTY_ITEM().createItem());
             }
             return new Impl(variants, onClick, this);

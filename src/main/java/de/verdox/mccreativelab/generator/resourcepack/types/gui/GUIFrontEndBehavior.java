@@ -240,8 +240,10 @@ public abstract class GUIFrontEndBehavior {
                 activeGUI.forceUpdate();
             }
 
-            activeGUI.getIndexToClickableItemMapping().forEach((key, value) -> value.tick(updaterTick.getAndIncrement(), activeGUI, key));
-        }, 0, activeGUI.getComponentRendered().updateInterval > 0 ? activeGUI.getComponentRendered().updateInterval * 50L : 1, TimeUnit.MILLISECONDS);
+
+            activeGUI.getIndexToClickableItemMapping().forEach((key, value) -> value.tick(updaterTick.get(), activeGUI, key));
+            updaterTick.getAndIncrement();
+        }, 0, activeGUI.getComponentRendered().updateInterval > 0 ? activeGUI.getComponentRendered().updateInterval * 50L : 50L, TimeUnit.MILLISECONDS);
 
         if (activeGUI.getComponentRendered().updateInterval < 0) {
             MCCPlatform.getInstance().getTaskManager().runAsync(mccTask -> activeGUI.forceUpdate());
