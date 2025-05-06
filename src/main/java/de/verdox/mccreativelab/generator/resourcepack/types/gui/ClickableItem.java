@@ -43,6 +43,9 @@ public interface ClickableItem {
 
         @Override
         public void tick(int tick, ActiveGUI activeGUI, int index) {
+            if (variants.size() == 1) {
+                return;
+            }
             if (index % 20 == 0) {
                 lastVariantId += 1;
                 if (lastVariantId >= variants.size()) {
@@ -70,7 +73,8 @@ public interface ClickableItem {
         private final List<MCCItemStack> variants = new ArrayList<>();
         public boolean popGUIStack = false;
         public boolean clearGUIStackAndClose = false;
-        private Consumer<MCCItemStack> itemSetup = mccItemStack -> {};
+        private Consumer<MCCItemStack> itemSetup = mccItemStack -> {
+        };
 
         public Builder(MCCItemStack stack) {
             withItem(stack.copy());
