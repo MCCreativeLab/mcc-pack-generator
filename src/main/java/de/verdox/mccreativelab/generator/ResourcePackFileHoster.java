@@ -6,6 +6,7 @@ import de.verdox.mccreativelab.wrapper.entity.types.MCCPlayer;
 import de.verdox.mccreativelab.wrapper.platform.MCCPlatform;
 import de.verdox.mccreativelab.wrapper.platform.MCCResourcePack;
 import de.verdox.vserializer.SerializableField;
+import de.verdox.vserializer.exception.SerializationException;
 import de.verdox.vserializer.generic.SerializationElement;
 import de.verdox.vserializer.generic.Serializer;
 import de.verdox.vserializer.generic.SerializerBuilder;
@@ -46,7 +47,7 @@ public class ResourcePackFileHoster {
     private WebServerHandler webServerHandler;
     private SshResourcePackUpload sshResourcePackUpload;
 
-    public ResourcePackFileHoster(File srcDir) throws IOException {
+    public ResourcePackFileHoster(File srcDir) throws IOException, SerializationException {
         File configFile = new File(srcDir + "/rpHosting_settings.json");
         configFile.getParentFile().mkdirs();
 
