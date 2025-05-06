@@ -240,9 +240,7 @@ public abstract class GUIFrontEndBehavior {
                 activeGUI.forceUpdate();
             }
 
-            activeGUI.getIndexToClickableItemMapping().entrySet().forEach(integerClickableItemEntry -> {
-                integerClickableItemEntry.getValue().tick(integerClickableItemEntry.getKey(), activeGUI, updaterTick.getAndIncrement());
-            });
+            activeGUI.getIndexToClickableItemMapping().forEach((key, value) -> value.tick(updaterTick.getAndIncrement(), activeGUI, key));
         }, 0, activeGUI.getComponentRendered().updateInterval > 0 ? activeGUI.getComponentRendered().updateInterval * 50L : 1, TimeUnit.MILLISECONDS);
 
         if (activeGUI.getComponentRendered().updateInterval < 0) {

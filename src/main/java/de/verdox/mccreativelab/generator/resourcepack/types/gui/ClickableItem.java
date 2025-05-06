@@ -46,13 +46,13 @@ public interface ClickableItem {
             if (variants.size() == 1) {
                 return;
             }
-            if (index % 20 == 0) {
+/*            if (tick % 20 == 0) {
                 lastVariantId += 1;
                 if (lastVariantId >= variants.size()) {
                     lastVariantId = 0;
                 }
                 showInGui(activeGUI, index, lastVariantId);
-            }
+            }*/
         }
 
         @Override
@@ -85,7 +85,7 @@ public interface ClickableItem {
         }
 
         public Builder() {
-            withItem(CustomResourcePack.EMPTY_ITEM().createItem());
+
         }
 
         public Builder withClick(BiConsumer<GUIClickAction, ActiveGUI> onClick) {
@@ -143,6 +143,9 @@ public interface ClickableItem {
         }
 
         public ClickableItem build() {
+            if(variants.isEmpty()) {
+                withItem(CustomResourcePack.EMPTY_ITEM().createItem());
+            }
             return new Impl(variants, onClick, this);
         }
     }
