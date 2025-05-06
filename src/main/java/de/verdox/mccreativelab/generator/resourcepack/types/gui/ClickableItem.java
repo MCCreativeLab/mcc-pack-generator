@@ -46,13 +46,13 @@ public interface ClickableItem {
             if (variants.size() == 1) {
                 return;
             }
-/*            if (tick % 20 == 0) {
+            if (tick % 20 == 0) {
                 lastVariantId += 1;
                 if (lastVariantId >= variants.size()) {
                     lastVariantId = 0;
                 }
                 showInGui(activeGUI, index, lastVariantId);
-            }*/
+            }
         }
 
         @Override
