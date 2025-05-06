@@ -24,7 +24,7 @@ public abstract class GUIFrontEndBehavior {
     private final Set<Audience> viewers;
     private long lastShift = System.currentTimeMillis();
     private FrontEndRenderer frontEndRenderer;
-    private MCCTask updateTask;
+    private MCCTask tickTask;
     private boolean setup;
     private final Set<UUID> inventoryUpdateWhitelist = new HashSet<>();
 
@@ -221,7 +221,7 @@ public abstract class GUIFrontEndBehavior {
     }
 
     private void startFrontEnd() {
-        if (updateTask != null && updateTask.isRunning())
+        if (tickTask != null && tickTask.isRunning())
             return;
         onFrontendRenderStart();
 
@@ -229,21 +229,21 @@ public abstract class GUIFrontEndBehavior {
         frontEndRenderer.start();
 
         AtomicInteger updaterTick = new AtomicInteger();
-        updateTask = MCCPlatform.getInstance().getTaskManager().runTimerAsync(mccTask -> {
+        AtomicInteger lastUpdate = new AtomicInteger();
+        tickTask = MCCPlatform.getInstance().getTaskManager().runTimerAsync(mccTask -> {
             if (viewers.isEmpty()) {
-                updateTask.cancel();
+                tickTask.cancel();
                 onFrontendClose();
                 frontEndRenderer.stopRenderer();
                 return;
             }
-            if (activeGUI.getComponentRendered().updateInterval > 0) {
+            activeGUI.getIndexToClickableItemMapping().forEach((key, value) -> value.tick(updaterTick.get(), activeGUI, key));
+            if (activeGUI.getComponentRendered().updateInterval > 0 && lastUpdate.get() % activeGUI.getComponentRendered().updateInterval == 0) {
                 activeGUI.forceUpdate();
             }
-
-
-            activeGUI.getIndexToClickableItemMapping().forEach((key, value) -> value.tick(updaterTick.get(), activeGUI, key));
             updaterTick.getAndIncrement();
-        }, 0, activeGUI.getComponentRendered().updateInterval > 0 ? activeGUI.getComponentRendered().updateInterval * 50L : 50L, TimeUnit.MILLISECONDS);
+            lastUpdate.getAndIncrement();
+        }, 0, 50L, TimeUnit.MILLISECONDS);
 
         if (activeGUI.getComponentRendered().updateInterval < 0) {
             MCCPlatform.getInstance().getTaskManager().runAsync(mccTask -> activeGUI.forceUpdate());

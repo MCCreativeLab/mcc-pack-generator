@@ -74,18 +74,24 @@ public class GUIUtil {
         }
 
         public final void disable(ActiveGUI activeGUI) {
-            if (!enabled) return;
-            enabled = false;
-            for (int slot : slotsForElements)
+            if (!enabled) {
+                return;
+            }
+
+            for (int slot : slotsForElements) {
                 activeGUI.removeClickableItem(slot);
+            }
             onDisable(activeGUI);
+            enabled = false;
         }
 
         public final void enable(ActiveGUI activeGUI, Collection<T> elements) {
-            this.enabled = true;
+            if (enabled) {
+                return;
+            }
             renderIntoGUI(activeGUI, elements);
-            if (!this.enabled)
-                onEnable(activeGUI, elements);
+            onEnable(activeGUI, elements);
+            this.enabled = true;
         }
     }
 
@@ -94,6 +100,7 @@ public class GUIUtil {
         private final int nextPageIndex;
         private final MCCItemStack leftArrow;
         private final MCCItemStack rightArrow;
+        private int currentlyRenderedPage = -1;
 
         public HorizontalGUIPagination(TriFunction<ActiveGUI, Integer, T, ClickableItem> itemCreator, int lastPageIndex, int nextPageIndex, MCCItemStack leftArrow, MCCItemStack rightArrow, int... slotsForElements) {
             super(itemCreator, slotsForElements);
@@ -112,22 +119,38 @@ public class GUIUtil {
 
                 int index = slotsForElements[counter];
 
-                activeGUI.addClickableItem(index, itemCreator.apply(activeGUI, counter, element));
+                ClickableItem newClickableItemThisTick = itemCreator.apply(activeGUI, counter, element);
+                boolean needsUpdate = true;
+                if (activeGUI.getIndexToClickableItemMapping().containsKey(index)) {
+                    needsUpdate = !activeGUI.getIndexToClickableItemMapping().get(index).equals(newClickableItemThisTick);
+                }
+
+                if (needsUpdate) {
+                    activeGUI.addClickableItem(index, newClickableItemThisTick);
+                }
                 counter++;
             }
 
-            for (int i = counter; i < slotsForElements.length; i++) {
-                activeGUI.removeClickableItem(slotsForElements[i]);
+            if (currentlyRenderedPage != currentPage) {
+                for (int i = counter; i < slotsForElements.length; i++) {
+                    activeGUI.removeClickableItem(slotsForElements[i]);
+                }
+
+                if (hasNextPage(activeGUI, elements)) {
+                    activeGUI.addClickableItem(nextPageIndex, createNextPage(activeGUI, elements));
+                }
+                else {
+                    activeGUI.removeClickableItem(nextPageIndex);
+                }
+                if (hasPreviousPage(activeGUI, elements)) {
+                    activeGUI.addClickableItem(lastPageIndex, createPreviousPage(activeGUI, elements));
+                }
+                else {
+                    activeGUI.removeClickableItem(lastPageIndex);
+                }
+                currentlyRenderedPage = currentPage;
             }
 
-            if (hasNextPage(activeGUI, elements))
-                activeGUI.addClickableItem(nextPageIndex, createNextPage(activeGUI, elements));
-            else
-                activeGUI.removeClickableItem(nextPageIndex);
-            if (hasPreviousPage(activeGUI, elements))
-                activeGUI.addClickableItem(lastPageIndex, createPreviousPage(activeGUI, elements));
-            else
-                activeGUI.removeClickableItem(lastPageIndex);
         }
 
         @Override
@@ -218,6 +241,7 @@ public class GUIUtil {
         private final int selectionIndex;
         private final MCCItemStack leftArrow;
         private final MCCItemStack rightArrow;
+        private int currentlyRenderedSkipIndex = -1;
 
         public HorizontalGUIScroller(TriFunction<ActiveGUI, Integer, T, ClickableItem> itemCreator, int scrollToLeftIndex, int scrollToRightIndex, int selectionIndex, MCCItemStack leftArrow, MCCItemStack rightArrow, int... slotsForElements) {
             super(itemCreator, slotsForElements);
@@ -244,18 +268,22 @@ public class GUIUtil {
                 index++;
             }
 
-            for (int i = index; i < slotsForElements.length; i++) {
-                activeGUI.removeClickableItem(slotsForElements[i]);
+            if (currentlyRenderedSkipIndex != skipped) {
+                for (int i = index; i < slotsForElements.length; i++) {
+                    activeGUI.removeClickableItem(slotsForElements[i]);
+                }
+
+                if (canScrollLeft(activeGUI, elements))
+                    activeGUI.addClickableItem(scrollToLeftIndex, createScrollLeftButton(elements));
+                else
+                    activeGUI.removeClickableItem(scrollToLeftIndex);
+                if (canScrollRight(activeGUI, elements))
+                    activeGUI.addClickableItem(scrollToRightIndex, createScrollRightButton(elements));
+                else
+                    activeGUI.removeClickableItem(scrollToRightIndex);
+                currentlyRenderedSkipIndex = skipped;
             }
 
-            if (canScrollLeft(activeGUI, elements))
-                activeGUI.addClickableItem(scrollToLeftIndex, createScrollLeftButton(elements));
-            else
-                activeGUI.removeClickableItem(scrollToLeftIndex);
-            if (canScrollRight(activeGUI, elements))
-                activeGUI.addClickableItem(scrollToRightIndex, createScrollRightButton(elements));
-            else
-                activeGUI.removeClickableItem(scrollToRightIndex);
         }
 
         @Override

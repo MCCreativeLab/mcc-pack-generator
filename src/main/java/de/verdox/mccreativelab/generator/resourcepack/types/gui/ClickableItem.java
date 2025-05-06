@@ -7,6 +7,7 @@ import de.verdox.mccreativelab.wrapper.item.MCCItemType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -43,14 +44,12 @@ public interface ClickableItem {
 
         @Override
         public void tick(int tick, ActiveGUI activeGUI, int index) {
-            if (variants.size() == 1) {
-                return;
-            }
             if (tick % 20 == 0) {
                 if (lastVariantId >= variants.size()) {
                     lastVariantId = 0;
                 }
-                showInGui(activeGUI, index, lastVariantId++);
+                showInGui(activeGUI, index, lastVariantId);
+                lastVariantId += 1;
             }
         }
 
@@ -63,6 +62,18 @@ public interface ClickableItem {
             MCCItemStack stack = variants.get(variantId).copy();
             builder.itemSetup.accept(stack);
             activeGUI.getVanillaInventory().setItem(slot, stack);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) return false;
+            Impl impl = (Impl) o;
+            return Objects.equals(variants, impl.variants);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(variants);
         }
     }
 
@@ -145,7 +156,7 @@ public interface ClickableItem {
             if (variants.isEmpty()) {
                 withItem(CustomResourcePack.EMPTY_ITEM().createItem());
             }
-            return new Impl(variants, onClick, this);
+            return new Impl(variants.stream().peek(mccItemStack -> itemSetup.accept(mccItemStack)).toList(), onClick, this);
         }
     }
 
