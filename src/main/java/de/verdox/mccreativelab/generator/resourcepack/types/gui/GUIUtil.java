@@ -17,23 +17,23 @@ public class GUIUtil {
     private static final Integer MIN_PAGES = 1;
 
     private static final Translatable LEFT = new Translatable("gui.scroller.left")
-        .withAdditionalTranslation(LanguageInfo.GERMAN, "Links")
-        .withAdditionalTranslation(LanguageInfo.ENGLISH_US, "Left");
+            .withAdditionalTranslation(LanguageInfo.GERMAN, "Links")
+            .withAdditionalTranslation(LanguageInfo.ENGLISH_US, "Left");
 
     private static final Translatable RIGHT = new Translatable("gui.scroller.right")
-        .withAdditionalTranslation(LanguageInfo.GERMAN, "Rechts")
-        .withAdditionalTranslation(LanguageInfo.ENGLISH_US, "Right");
+            .withAdditionalTranslation(LanguageInfo.GERMAN, "Rechts")
+            .withAdditionalTranslation(LanguageInfo.ENGLISH_US, "Right");
     private static final Translatable CURRENT_PAGE = new Translatable("gui.pagination.current")
-        .withAdditionalTranslation(LanguageInfo.GERMAN, "Seite: ")
-        .withAdditionalTranslation(LanguageInfo.ENGLISH_US, "Page: ");
+            .withAdditionalTranslation(LanguageInfo.GERMAN, "Seite: ")
+            .withAdditionalTranslation(LanguageInfo.ENGLISH_US, "Page: ");
 
     private static final Translatable NEXT_PAGE = new Translatable("gui.pagination.next")
-        .withAdditionalTranslation(LanguageInfo.GERMAN, "Nächste Seite")
-        .withAdditionalTranslation(LanguageInfo.ENGLISH_US, "Next page");
+            .withAdditionalTranslation(LanguageInfo.GERMAN, "Nächste Seite")
+            .withAdditionalTranslation(LanguageInfo.ENGLISH_US, "Next page");
 
     private static final Translatable PREVIOUS_PAGE = new Translatable("gui.pagination.previous")
-        .withAdditionalTranslation(LanguageInfo.GERMAN, "Vorherige Seite")
-        .withAdditionalTranslation(LanguageInfo.ENGLISH_US, "Previous page");
+            .withAdditionalTranslation(LanguageInfo.GERMAN, "Vorherige Seite")
+            .withAdditionalTranslation(LanguageInfo.ENGLISH_US, "Previous page");
 
     public static void install(CustomResourcePack customResourcePack) {
         customResourcePack.getLanguageStorage().addTranslation(CURRENT_PAGE);
@@ -56,8 +56,12 @@ public class GUIUtil {
         }
 
         public final void renderIntoGUI(ActiveGUI activeGUI, Collection<T> elements) {
-            if (!enabled)
+            if (!enabled) {
                 return;
+            }
+            if (activeGUI.getPlayer() == null || activeGUI.getViewersNoCopy().isEmpty()) {
+                return;
+            }
             render(activeGUI, elements);
         }
 
@@ -163,43 +167,43 @@ public class GUIUtil {
         private ClickableItem createNextPage(ActiveGUI activeGUI, Collection<T> elements) {
             MCCItemStack arrowItem = leftArrow.copy();
             arrowItem.components().edit(MCCDataComponentTypes.ITEM_NAME.get(), editor -> {
-                    int currentPage = getCurrentPage(activeGUI);
-                    editor.set(CURRENT_PAGE.asTranslatableComponent().append(Component.text(currentPage)));
-                }).
-                edit(MCCDataComponentTypes.LORE.get(), editor -> editor.with(mccItemLore -> mccItemLore.withLines(List.of(NEXT_PAGE.asTranslatableComponent()))));
+                        int currentPage = getCurrentPage(activeGUI);
+                        editor.set(CURRENT_PAGE.asTranslatableComponent().append(Component.text(currentPage)));
+                    }).
+                    edit(MCCDataComponentTypes.LORE.get(), editor -> editor.with(mccItemLore -> mccItemLore.withLines(List.of(NEXT_PAGE.asTranslatableComponent()))));
 
             return new ClickableItem.Builder()
-                .withItem(arrowItem)
-                .withClick((inventoryClickEvent, activeGUI1) -> {
-                    int currentPage = getCurrentPage(activeGUI1);
-                    int maxPages = getMaxPages(activeGUI, elements);
-                    if (!hasNextPage(activeGUI, elements))
-                        return;
-                    int nextPage = Math.min(maxPages, currentPage + 1);
-                    setCurrentPage(activeGUI1, nextPage);
-                })
-                .build();
+                    .withItem(arrowItem)
+                    .withClick((inventoryClickEvent, activeGUI1) -> {
+                        int currentPage = getCurrentPage(activeGUI1);
+                        int maxPages = getMaxPages(activeGUI, elements);
+                        if (!hasNextPage(activeGUI, elements))
+                            return;
+                        int nextPage = Math.min(maxPages, currentPage + 1);
+                        setCurrentPage(activeGUI1, nextPage);
+                    })
+                    .build();
         }
 
         private ClickableItem createPreviousPage(ActiveGUI activeGUI, Collection<T> elements) {
 
             MCCItemStack arrowItem = rightArrow.copy();
             arrowItem.components().edit(MCCDataComponentTypes.ITEM_NAME.get(), editor -> {
-                    int currentPage = getCurrentPage(activeGUI);
-                    editor.set(CURRENT_PAGE.asTranslatableComponent().append(Component.text(currentPage)));
-                })
-                .edit(MCCDataComponentTypes.LORE.get(), editor -> editor.with(mccItemLore -> mccItemLore.withLines(List.of(PREVIOUS_PAGE.asTranslatableComponent()))));
+                        int currentPage = getCurrentPage(activeGUI);
+                        editor.set(CURRENT_PAGE.asTranslatableComponent().append(Component.text(currentPage)));
+                    })
+                    .edit(MCCDataComponentTypes.LORE.get(), editor -> editor.with(mccItemLore -> mccItemLore.withLines(List.of(PREVIOUS_PAGE.asTranslatableComponent()))));
 
             return new ClickableItem.Builder()
-                .withItem(arrowItem)
-                .withClick((inventoryClickEvent, activeGUI1) -> {
-                    int currentPage = getCurrentPage(activeGUI1);
-                    if (!hasPreviousPage(activeGUI, elements))
-                        return;
-                    int nextPage = Math.max(MIN_PAGES, currentPage - 1);
-                    setCurrentPage(activeGUI1, nextPage);
-                })
-                .build();
+                    .withItem(arrowItem)
+                    .withClick((inventoryClickEvent, activeGUI1) -> {
+                        int currentPage = getCurrentPage(activeGUI1);
+                        if (!hasPreviousPage(activeGUI, elements))
+                            return;
+                        int nextPage = Math.max(MIN_PAGES, currentPage - 1);
+                        setCurrentPage(activeGUI1, nextPage);
+                    })
+                    .build();
         }
     }
 
@@ -292,24 +296,24 @@ public class GUIUtil {
             arrow.components().edit(MCCDataComponentTypes.ITEM_NAME.get(), editor -> editor.set(LEFT.asTranslatableComponent()));
 
             return new ClickableItem.Builder()
-                .withItem(arrow)
-                .withClick((inventoryClickEvent, activeGUI1) -> {
-                    setSkipIndex(activeGUI1, getSkipIndex(activeGUI1) - 1);
-                    renderIntoGUI(activeGUI1, elements);
-                })
-                .build();
+                    .withItem(arrow)
+                    .withClick((inventoryClickEvent, activeGUI1) -> {
+                        setSkipIndex(activeGUI1, getSkipIndex(activeGUI1) - 1);
+                        renderIntoGUI(activeGUI1, elements);
+                    })
+                    .build();
         }
 
         private ClickableItem createScrollRightButton(Collection<T> elements) {
             MCCItemStack arrow = rightArrow.copy();
             arrow.components().edit(MCCDataComponentTypes.ITEM_NAME.get(), editor -> editor.set(RIGHT.asTranslatableComponent()));
             return new ClickableItem.Builder()
-                .withItem(arrow)
-                .withClick((inventoryClickEvent, activeGUI1) -> {
-                    setSkipIndex(activeGUI1, getSkipIndex(activeGUI1) + 1);
-                    renderIntoGUI(activeGUI1, elements);
-                })
-                .build();
+                    .withItem(arrow)
+                    .withClick((inventoryClickEvent, activeGUI1) -> {
+                        setSkipIndex(activeGUI1, getSkipIndex(activeGUI1) + 1);
+                        renderIntoGUI(activeGUI1, elements);
+                    })
+                    .build();
         }
     }
 }
