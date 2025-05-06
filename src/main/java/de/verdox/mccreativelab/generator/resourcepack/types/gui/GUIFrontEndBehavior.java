@@ -16,6 +16,7 @@ import net.kyori.adventure.text.Component;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class GUIFrontEndBehavior {
     private static final long SHIFT_COOLDOWN_MILLIS = 20;
@@ -146,15 +147,7 @@ public abstract class GUIFrontEndBehavior {
         clickAction.setCancelled(true);
 
         ClickableItem clickableItem = activeGUI.getIndexToClickableItemMapping().get(rawSlot);
-        clickableItem.getOnClick().accept(clickAction, activeGUI);
-
-        if (clickableItem.getBuilder().clearGUIStackAndClose) {
-            PlayerGUIStack.load(player).clear();
-
-            player.closeCurrentInventory(new MCCContainerCloseReason("close_active_gui"));
-        } else if (clickableItem.getBuilder().popGUIStack) {
-            PlayerGUIStack.load(player).popAndOpenLast(player, activeGUI);
-        }
+        clickableItem.click(clickAction, activeGUI);
 
         if (activeGUI.getComponentRendered().getClickConsumer() != null) {
             activeGUI.getComponentRendered().getClickConsumer().accept(clickAction, activeGUI);
@@ -235,6 +228,7 @@ public abstract class GUIFrontEndBehavior {
         frontEndRenderer = new FrontEndRenderer(activeGUI);
         frontEndRenderer.start();
 
+        AtomicInteger updaterTick = new AtomicInteger();
         updateTask = MCCPlatform.getInstance().getTaskManager().runTimerAsync(mccTask -> {
             if (viewers.isEmpty()) {
                 updateTask.cancel();
@@ -246,6 +240,9 @@ public abstract class GUIFrontEndBehavior {
                 activeGUI.forceUpdate();
             }
 
+            activeGUI.getIndexToClickableItemMapping().entrySet().forEach(integerClickableItemEntry -> {
+                integerClickableItemEntry.getValue().tick(integerClickableItemEntry.getKey(), activeGUI, updaterTick.getAndIncrement());
+            });
         }, 0, activeGUI.getComponentRendered().updateInterval > 0 ? activeGUI.getComponentRendered().updateInterval * 50L : 1, TimeUnit.MILLISECONDS);
 
         if (activeGUI.getComponentRendered().updateInterval < 0) {

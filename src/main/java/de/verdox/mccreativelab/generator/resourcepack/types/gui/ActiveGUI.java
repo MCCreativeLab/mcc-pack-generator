@@ -89,7 +89,7 @@ public class ActiveGUI extends ActiveComponentRendered<ActiveGUI, CustomGUIBuild
     }
 
     public final void addClickableItem(int index, ClickableItem clickableItem) {
-        this.getVanillaInventory().setItem(index, clickableItem.getStack());
+        clickableItem.onAdd(this, index);
         indexToClickableItemMapping.put(index, clickableItem);
     }
 
