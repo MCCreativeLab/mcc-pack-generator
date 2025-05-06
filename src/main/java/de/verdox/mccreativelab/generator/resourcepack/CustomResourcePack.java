@@ -20,6 +20,7 @@ import de.verdox.mccreativelab.util.io.ZipUtil;
 import de.verdox.mccreativelab.wrapper.block.MCCBlockState;
 import de.verdox.mccreativelab.wrapper.item.MCCItemType;
 import de.verdox.mccreativelab.wrapper.typed.MCCItems;
+import de.verdox.vserializer.exception.SerializationException;
 import de.verdox.vserializer.util.gson.JsonObjectBuilder;
 import de.verdox.vserializer.util.gson.JsonUtil;
 import net.kyori.adventure.key.Key;
@@ -131,7 +132,7 @@ public class CustomResourcePack extends CustomPack<CustomResourcePack> {
     }
 
     @Override
-    public File installPack(boolean reload) throws IOException {
+    public File installPack(boolean reload) throws IOException, SerializationException {
         installAdditionalContent();
         File file = super.installPack(reload);
         globalAssetInstallation();

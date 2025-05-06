@@ -1,5 +1,6 @@
 package de.verdox.mccreativelab.generator;
 
+import de.verdox.vserializer.exception.SerializationException;
 import de.verdox.vserializer.generic.Serializer;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.Nullable;
@@ -48,7 +49,7 @@ public abstract class CustomPack<C extends CustomPack<C>> {
         FileUtils.deleteDirectory(pathToSavePackDataTo.toPath().toFile());
     }
 
-    public File installPack(boolean reload) throws IOException {
+    public File installPack(boolean reload) throws IOException, SerializationException {
         isReloading = reload;
 
         FileUtils.deleteDirectory(packFromLastRestart.toPath().toFile());
@@ -85,7 +86,7 @@ public abstract class CustomPack<C extends CustomPack<C>> {
         return pathToSavePackDataTo.toPath().toFile();
     }
 
-    private void reloadResourcesFromConfigs() throws IOException {
+    private void reloadResourcesFromConfigs() throws IOException, SerializationException {
         if(!addedResources.isEmpty())
             configurableResourceStorage.deleteTemplateFolder();
         for (Resource<C> addedResource : addedResources) {

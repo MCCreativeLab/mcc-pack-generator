@@ -1,5 +1,6 @@
 package de.verdox.mccreativelab.generator;
 
+import de.verdox.vserializer.exception.SerializationException;
 import de.verdox.vserializer.generic.SerializationElement;
 import de.verdox.vserializer.generic.Serializer;
 import de.verdox.vserializer.json.JsonSerializerContext;
@@ -24,7 +25,7 @@ public class ConfigurableResourceStorage<C extends CustomPack<C>> {
             FileUtils.deleteDirectory(parentFolder);
     }
 
-    public <T extends Resource<C>> void loadResourceFromStorage(T resource) throws IOException {
+    public <T extends Resource<C>> void loadResourceFromStorage(T resource) throws IOException, SerializationException {
         if(resource.getSerializer() == null){
             return;
         }
