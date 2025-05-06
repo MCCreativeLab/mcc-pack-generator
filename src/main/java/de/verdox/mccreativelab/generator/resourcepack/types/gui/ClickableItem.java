@@ -70,7 +70,7 @@ public interface ClickableItem {
         private final List<MCCItemStack> variants = new ArrayList<>();
         public boolean popGUIStack = false;
         public boolean clearGUIStackAndClose = false;
-        private Consumer<MCCItemStack> itemSetup;
+        private Consumer<MCCItemStack> itemSetup = mccItemStack -> {};
 
         public Builder(MCCItemStack stack) {
             withItem(stack.copy());
