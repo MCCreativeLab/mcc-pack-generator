@@ -95,7 +95,7 @@ public abstract class GUIFrontEndBehavior {
                 return;
             }
 
-            int rawSlot = clickAction.getClickedSlot();
+            int rawSlot = clickAction.getClickedRawSlot();
             if (activeGUI.getIndexToClickableItemMapping().containsKey(rawSlot)) {
                 runClickableItemLogic(clickAction, rawSlot, player);
                 return;
