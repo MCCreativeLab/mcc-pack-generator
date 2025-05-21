@@ -32,7 +32,7 @@ dependencies {
     api("com.google.code.gson:gson:2.11.0")
     api("net.kyori:adventure-api:4.17.0")
     api("org.apache.commons:commons-lang3:3.17.0")
-    api("ws.schild:jave-all-deps:3.5.0")
+    api("ws.schild:jave-core:3.5.0")
     api("com.google.guava:guava:33.3.1-jre")
     api("org.apache.commons:commons-compress:1.27.1")
 
