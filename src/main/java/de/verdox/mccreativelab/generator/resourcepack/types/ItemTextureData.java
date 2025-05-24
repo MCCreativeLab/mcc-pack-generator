@@ -78,7 +78,7 @@ public class ItemTextureData extends ResourcePackResource {
         if (stackConsumer != null) {
             stackConsumer.accept(stack);
         }
-        if (!useVanillaTexture) {
+        if (useVanillaTexture) {
             stack.components().edit(MCCDataComponentTypes.ITEM_MODEL.get(), editor -> editor.set(key()));
         }
         return stack;
