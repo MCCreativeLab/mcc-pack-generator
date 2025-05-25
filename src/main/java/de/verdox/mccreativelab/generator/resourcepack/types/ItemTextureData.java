@@ -17,6 +17,7 @@ import de.verdox.vserializer.util.gson.JsonUtil;
 import de.verdox.mccreativelab.util.io.AssetUtil;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.Keyed;
+import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,9 +79,10 @@ public class ItemTextureData extends ResourcePackResource {
         if (stackConsumer != null) {
             stackConsumer.accept(stack);
         }
-        if (useVanillaTexture) {
+        if (!useVanillaTexture) {
             stack.components().edit(MCCDataComponentTypes.ITEM_MODEL.get(), editor -> editor.set(key()));
         }
+        stack.components().edit(MCCDataComponentTypes.ITEM_NAME.get(), componentMCCDataComponentEditor -> componentMCCDataComponentEditor.set(Component.translatable("item." + key().namespace() + "." + key().value())));
         return stack;
     }
 
