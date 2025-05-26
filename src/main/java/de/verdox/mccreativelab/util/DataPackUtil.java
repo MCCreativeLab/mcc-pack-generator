@@ -13,7 +13,12 @@ public class DataPackUtil {
         return ZipUtil.extractFilesFromZipFileResource(dataPackAsset.assetInputStream(), String.valueOf(Path.of(levelName + "/datapacks/" + dataPackName)));
     }
 
-    public static void removeInstalledDataPack(String levelName, String dataPackName, Asset<?> dataPackAsset) throws IOException {
+    public static boolean isDataPackInstalled(String levelName, String dataPackName) {
+        File dataPackDirectory = Path.of(levelName + "/datapacks/" + dataPackName).toFile();
+        return dataPackDirectory.exists();
+    }
+
+    public static void removeInstalledDataPack(String levelName, String dataPackName) throws IOException {
         File dataPackDirectory = Path.of(levelName + "/datapacks/" + dataPackName).toFile();
         FileUtils.deleteDirectory(dataPackDirectory);
     }
