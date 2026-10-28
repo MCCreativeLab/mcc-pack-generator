@@ -12,7 +12,7 @@ import java.util.logging.Level;
 public class HudRendererImpl extends Thread implements HudRenderer {
     private final Map<Audience, PlayerHudRendererData> renderingDataCache = new ConcurrentHashMap<>();
     private final LinkedBlockingQueue<TickData> ticksToProcess = new LinkedBlockingQueue<>();
-    private boolean isRunning = true;
+    private volatile boolean isRunning = true;
 
     public HudRendererImpl() {
         super(null, null, "HudRendererThread");
@@ -71,6 +71,9 @@ public class HudRendererImpl extends Thread implements HudRenderer {
                     if(!list.contains(player))
                         renderingDataCache.remove(player);
                 }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
             } catch (Throwable e) {
                 LOGGER.log(Level.SEVERE, "An error occured in the HudRenderer", e);
             }

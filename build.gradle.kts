@@ -4,10 +4,10 @@ plugins {
     `maven-publish`
 
     // Nothing special about this, just keep it up to date
-    id("com.github.johnrengelman.shadow") version "8.1.1" apply false
+    id("com.gradleup.shadow") version "9.6.1" apply false
 
     // In general, keep this version in sync with upstream. Sometimes a newer version than upstream might work, but an older version is extremely likely to break.
-    //id("io.papermc.paperweight.patcher") version "1.7.3"
+    //id("io.papermc.paperweight.patcher") version "2.0.0-beta.24"
 }
 
 repositories {
@@ -20,6 +20,8 @@ repositories {
 }
 
 dependencies {
+    testImplementation(platform("org.junit:junit-bom:5.13.3"))
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     //compileOnly("de.verdox.mccreativelab:mcc-util:" + providers.gradleProperty("version").get())
     api("de.verdox.mccreativelab.mcc-wrapper:api:" + providers.gradleProperty("version").get())
 
@@ -30,14 +32,13 @@ dependencies {
     api("org.tukaani:xz:1.9")
     api("commons-io:commons-io:2.17.0")
     api("com.google.code.gson:gson:2.11.0")
-    api("net.kyori:adventure-api:4.17.0")
+    api("net.kyori:adventure-api:5.2.0")
     api("org.apache.commons:commons-lang3:3.17.0")
     api("ws.schild:jave-core:3.5.0")
     api("com.google.guava:guava:33.3.1-jre")
     api("org.apache.commons:commons-compress:1.27.1")
 
 
-    testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
 

@@ -40,6 +40,7 @@ import java.util.stream.Stream;
 public class ResourcePackFileHoster {
     public static final Logger LOGGER = Logger.getLogger(ResourcePackFileHoster.class.getSimpleName());
 
+    private Vertx vertx;
     private HttpServer httpServer;
     private final Map<String, MCCResourcePack> availableResourcePacks = new HashMap<>();
 
@@ -66,7 +67,8 @@ public class ResourcePackFileHoster {
 
         if (hostingSettings.mode().equals(Mode.INTERNAL_WEBSERVER)) {
             LOGGER.info("Starting ResourcePackFileHoster on " + hostingSettings.webServerSettings().hostName() + ":" + hostingSettings.webServerSettings().port());
-            this.httpServer = Vertx.vertx().createHttpServer();
+            this.vertx = Vertx.vertx();
+            this.httpServer = vertx.createHttpServer();
             this.httpServer.exceptionHandler(event -> LOGGER.warning("Exception happened in ResourcePackFileHoster: " + event.getLocalizedMessage()));
             webServerHandler = new WebServerHandler();
             this.httpServer.requestHandler(webServerHandler);
@@ -77,8 +79,13 @@ public class ResourcePackFileHoster {
     }
 
     public void closeAndWait() throws InterruptedException {
-        if (hostingSettings.mode().equals(Mode.INTERNAL_WEBSERVER))
-            this.httpServer.close().result();
+        if (vertx != null) {
+            try {
+                vertx.close().toCompletionStage().toCompletableFuture().get();
+            } catch (java.util.concurrent.ExecutionException e) {
+                throw new IllegalStateException("Could not close the resource pack hoster", e.getCause());
+            }
+        }
     }
 
     public void sendResourcePackToPlayer(MCCPlayer player, MCCResourcePack packInfo) {
@@ -88,7 +95,15 @@ public class ResourcePackFileHoster {
         LOGGER.info("Sending resource pack with url " + downloadURL + " to " + player.getUUID());
     }
 
+    /** Sends a named installed pack, avoiding ambiguity when several generated packs exist. */
+    public void sendResourcePackToPlayers(Iterable<MCCPlayer> players, String packName) {
+        var pack = availableResourcePacks.values().stream().filter(candidate -> candidate.name().equals(packName)).findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Resource pack has not been installed: " + packName));
+        for (MCCPlayer player : players) sendResourcePackToPlayer(player, pack);
+    }
+
     public void createResourcePackZipFiles() throws IOException {
+        availableResourcePacks.clear();
         deleteZipFiles();
 
         try (Stream<Path> files = Files.walk(CustomResourcePack.resourcePacksFolder.toPath(), 1)) {
@@ -118,7 +133,7 @@ public class ResourcePackFileHoster {
                         LOGGER.info("Took " + end + " ms");
                     }
 
-                    MCCResourcePack resourcePackInfo = new MCCResourcePack(resourcePackName, zipFile, createDownloadUrl(hash), hash, hashBytes, true, null);
+                    MCCResourcePack resourcePackInfo = new MCCResourcePack(resourcePackName, zipFile, createDownloadUrl(hash), hash, hashBytes, hostingSettings.requireResourcePack(), null);
                     availableResourcePacks.put(hash, resourcePackInfo);
                     if (hostingSettings.mode().equals(Mode.INTERNAL_WEBSERVER)) {
                         if (hostingSettings.calculateHashes()) {

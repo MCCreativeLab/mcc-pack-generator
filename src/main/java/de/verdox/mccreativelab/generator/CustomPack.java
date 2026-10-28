@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 public abstract class CustomPack<C extends CustomPack<C>> {
     protected final String packName;
     protected final int packFormat;
+    protected final PackFormat targetPackFormat;
     protected final String description;
     protected final AssetPath savePath;
     protected final AssetPath pathToSavePackDataTo;
@@ -26,8 +27,13 @@ public abstract class CustomPack<C extends CustomPack<C>> {
     private final ConfigurableResourceStorage<C> configurableResourceStorage;
 
     public CustomPack(String packName, int packFormat, String description, AssetPath savePath, File templateFolder, File dataFolder) {
+        this(packName, new PackFormat(packFormat, 0), description, savePath, templateFolder, dataFolder);
+    }
+
+    public CustomPack(String packName, PackFormat packFormat, String description, AssetPath savePath, File templateFolder, File dataFolder) {
         this.packName = packName;
-        this.packFormat = packFormat;
+        this.targetPackFormat = Objects.requireNonNull(packFormat);
+        this.packFormat = packFormat.major();
         this.description = description;
         this.savePath = savePath;
         this.pathToSavePackDataTo = AssetPath.buildPath(packName).withNewParentPath(savePath);
@@ -143,6 +149,10 @@ public abstract class CustomPack<C extends CustomPack<C>> {
 
     public int getPackFormat() {
         return packFormat;
+    }
+
+    public PackFormat getTargetPackFormat() {
+        return targetPackFormat;
     }
 
     public String getDescription() {

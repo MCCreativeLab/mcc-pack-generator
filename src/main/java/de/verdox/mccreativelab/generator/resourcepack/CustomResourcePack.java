@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import de.verdox.mccreativelab.generator.Asset;
 import de.verdox.mccreativelab.generator.AssetPath;
 import de.verdox.mccreativelab.generator.CustomPack;
+import de.verdox.mccreativelab.generator.PackFormat;
 import de.verdox.mccreativelab.generator.Resource;
 import de.verdox.mccreativelab.generator.resourcepack.debug.DebugHud;
 import de.verdox.mccreativelab.generator.resourcepack.debug.DebugMenu;
@@ -43,6 +44,10 @@ public class CustomResourcePack extends CustomPack<CustomResourcePack> {
 
     public final DebugHud debugHud = new DebugHud(Key.key("mccreativelab", "debug_hud"));
     public final DebugMenu debugMenu = new DebugMenu(Key.key("mccreativelab", "debug_menu"));
+
+    public CustomResourcePack(String packName, PackFormat packFormat, String description, AssetPath savePath, File templateFolder, File dataFolder) {
+        super(packName, packFormat, description, savePath, templateFolder, dataFolder);
+    }
 
     public CustomResourcePack(String packName, int packFormat, String description, AssetPath savePath, File templateFolder, File dataFolder) {
         super(packName, packFormat, description, savePath, templateFolder, dataFolder);
@@ -203,11 +208,7 @@ public class CustomResourcePack extends CustomPack<CustomResourcePack> {
 
         var mcMetaPreset = JsonObjectBuilder.create().add("language", languagesJson).build();
 
-        JsonObjectBuilder.create(mcMetaPreset).add("pack",
-                JsonObjectBuilder.create()
-                        .add("pack_format", packFormat)
-                        .add("description", description)
-        );
+        mcMetaPreset.add("pack", targetPackFormat.metadata(description, 64));
         JsonUtil.writeJsonObjectToFile(mcMetaPreset, pathToSavePackDataTo.concatPath("pack.mcmeta").toPath().toFile());
     }
 

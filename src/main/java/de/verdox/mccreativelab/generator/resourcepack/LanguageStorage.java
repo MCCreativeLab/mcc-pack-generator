@@ -12,7 +12,7 @@ import de.verdox.vserializer.util.gson.JsonUtil;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.translation.TranslationRegistry;
+import net.kyori.adventure.translation.TranslationStore;
 
 import java.io.InputStream;
 import java.text.MessageFormat;
@@ -21,12 +21,11 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class LanguageStorage {
-    //TODO: TranslationRegistry not UTF-8
     private static final LanguageInfo STANDARD = LanguageInfo.ENGLISH_US;
     private final Set<Translation> customTranslations = new HashSet<>();
     private final Map<String, Map<LanguageInfo, Translation>> translationKeyMapping = new HashMap<>();
     private final CustomResourcePack customResourcePack;
-    private final TranslationRegistry translationRegistry = TranslationRegistry.create(Key.key("mccreativelab", "language_storage"));
+    private final TranslationStore.StringBased<MessageFormat> translationRegistry = TranslationStore.messageFormat(Key.key("mccreativelab", "language_storage"));
 
     LanguageStorage(CustomResourcePack customResourcePack) {
         this.customResourcePack = customResourcePack;

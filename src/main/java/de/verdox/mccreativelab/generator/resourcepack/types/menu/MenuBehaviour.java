@@ -88,8 +88,8 @@ public abstract class MenuBehaviour {
         if (activeMenu.getCustomMenu().doEffects) {
             this.effectTask = MCCPlatform.getInstance().getTaskManager().runTimerOnTickThread(mccTask -> {
                 try {
-                    MCCEffect slowness = MCCEffects.MOVEMENT_SLOWDOWN.get().create(20, 3, false, false, false, null);
-                    MCCEffect fatigue = MCCEffects.DIG_SLOWDOWN.get().create(20, -1, false, false, false, null);
+                    MCCEffect slowness = MCCEffects.SLOWNESS.get().create(20, 3, false, false, false, null);
+                    MCCEffect fatigue = MCCEffects.MINING_FATIGUE.get().create(20, -1, false, false, false, null);
                     MCCEffect blind = MCCEffects.BLINDNESS.get().create(40, 1, false, false, false, null);
                     slowness.apply(player);
                     fatigue.apply(player);
