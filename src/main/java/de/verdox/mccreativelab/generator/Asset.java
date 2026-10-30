@@ -62,8 +62,7 @@ public record Asset<C extends CustomPack<C>>(Supplier<InputStream> assetInputStr
     }
 
     public boolean isInputStreamValid() {
-        if (assetInputStream == null || assetInputStream.get() == null)
-            return false;
+        if (assetInputStream == null) return false;
         try (InputStream stream = assetInputStream.get()) {
             return stream != null;
         } catch (IOException e) {

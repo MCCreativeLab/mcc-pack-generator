@@ -66,17 +66,9 @@ public class SingleHudTexture implements SingleHudElement {
 
             //TODO: Texture width aber ohne transparente Pixel. Muss umgeschrieben werden
             return Component.text(getHudElement().bitMap().character()[0]).color(TextColor.color(255, 255, 255)).font(Key.key(fontKey.toString()))
-                            .append(Component.translatable("space.-" + ((getHudElement().width() + 1)))
-                                             .font(Key.key("space:default")));
+                            .append(de.verdox.mccreativelab.generator.resourcepack.types.font.SpaceFont.advance(-(getHudElement().width() + 1)));
         }
 
-        private Component createNegativeSpacing(int spacing) {
-            return Component.translatable("space.-" + Math.abs(spacing + 1)).font(Key.key("space:default"));
-        }
-
-        private Component createSpacing(int spacing) {
-            return Component.translatable("space." + Math.abs(spacing + 1)).font(Key.key("space:default"));
-        }
     }
 
 }

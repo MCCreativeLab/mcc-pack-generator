@@ -104,7 +104,15 @@ public class ItemTextureData extends ResourcePackResource {
             pngFile.installAsset(customPack, Key.key(key().namespace() + ":item/" + key().value()), ResourcePackAssetTypes.TEXTURES, "png");
         }
 
-        createModelFile(customPack);
+        // Vanilla-only items have no custom PNG. Reference their native model
+        // instead of creating a generated model pointing at a nonexistent texture.
+        if (useVanillaTexture) {
+            AssetUtil.createJsonAssetAndInstall(
+                JsonObjectBuilder.create().add("parent", material.key().namespace() + ":item/" + material.key().value()).build(),
+                customPack, Key.key(key().namespace(), "item/" + key().value()), ResourcePackAssetTypes.MODELS);
+        } else {
+            createModelFile(customPack);
+        }
     }
 
     private void createModelFile(CustomResourcePack customPack) {

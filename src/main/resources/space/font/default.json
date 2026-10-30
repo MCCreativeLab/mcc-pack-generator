@@ -17,19 +17,16 @@
       }
     },
     {
-      "type": "bitmap",
-      "file": "space:font/splitter.png",
-      "ascent": -9999,
-      "height": -2,
-      "chars": [
-        "󀀀"
-      ]
+      "type": "space",
+      "advances": {
+        "\udac0\udc00": 0
+      }
     },
     {
       "type": "space",
       "advances": {
-        "󀀁": -1e400,
-        "󟿿": 1e400
+        "󀀁": -1048576,
+        "󟿿": 1048576
       }
     },
     {

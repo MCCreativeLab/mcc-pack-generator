@@ -29,6 +29,11 @@ public interface GeneratorPlatformHelper {
 
     @NotNull HudRenderer getHudRenderer();
 
+    /** Resolve platform audiences to the same player representation used by render ticks. */
+    default Audience normalizeHudAudience(Audience audience) {
+        return audience;
+    }
+
     /**
      * Returns the {@link UUID} of {@link Audience} if available. Else this method returns null.
      *

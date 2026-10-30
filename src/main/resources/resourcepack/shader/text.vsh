@@ -8,9 +8,6 @@
 
 #include <minecraft:dynamictransforms.glsl>
 #include <minecraft:projection.glsl>
-#ifdef IS_GUI
-#include <minecraft:globals.glsl>
-#endif
 
 layout(location = 0) in vec3 Position;
 layout(location = 1) in vec4 Color;
@@ -32,8 +29,9 @@ void main() {
     vec3 pos = Position;
 #ifdef IS_GUI
     // MCC bitmap glyphs encode their screen anchor in their ascent.
-    float guiScale = max(1.0, round(ProjMat[0][0] * ScreenSize.x * 0.5));
-    vec2 guiSize = ScreenSize / guiScale;
+    // The projection carries the exact GUI dimensions, including fractional
+    // framebuffer scaling. Globals.ScreenSize can describe another render target.
+    vec2 guiSize = vec2(2.0 / ProjMat[0][0], -2.0 / ProjMat[1][1]);
     float id = trunc(-round(guiSize.y - Position.y) / 1000.0);
     if (id > 99.0 && Color.a != 0.0) {
         float xOffset = 0.0;

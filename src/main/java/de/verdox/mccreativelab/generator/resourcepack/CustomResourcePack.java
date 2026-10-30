@@ -36,7 +36,7 @@ public class CustomResourcePack extends CustomPack<CustomResourcePack> {
     private static ItemTextureData EMPTY_ITEM;
     private final Map<String, SoundFile> soundFilesPerNamespace = new HashMap<>();
     private final Map<MCCItemType, Set<ItemTextureData>> itemTextureDataPerMaterial = new HashMap<>();
-    private final Map<MCCBlockState, Set<AlternateBlockStateModel>> alternateBlockStateModels = new HashMap<>();
+    private final Map<Key, Set<AlternateBlockStateModel>> alternateBlockStateModels = new HashMap<>();
     private final LanguageStorage languageStorage = new LanguageStorage(this);
     private final ResourcePackMapper resourcePackMapper = new ResourcePackMapper();
     private final List<File> includedResourcePacks = new LinkedList<>();
@@ -158,14 +158,13 @@ public class CustomResourcePack extends CustomPack<CustomResourcePack> {
             Set<ItemTextureData> itemTextureDataSet = materialSetEntry.getValue();
             ItemTextureData.createVanillaModelFile(material, itemTextureDataSet, this);
         }*/
-        for (Map.Entry<MCCBlockState, Set<AlternateBlockStateModel>> materialSetEntry : alternateBlockStateModels.entrySet()) {
-            MCCBlockState material = materialSetEntry.getKey();
-            material.requireVanilla();
+        for (Map.Entry<Key, Set<AlternateBlockStateModel>> materialSetEntry : alternateBlockStateModels.entrySet()) {
+            Key material = materialSetEntry.getKey();
             Set<AlternateBlockStateModel> alternateBlockStateModels = materialSetEntry.getValue();
 
             JsonObject jsonObject = AlternateBlockStateModel.createBlockStateJson(alternateBlockStateModels);
 
-            AssetUtil.createJsonAssetAndInstall(jsonObject, this, material.key(), ResourcePackAssetTypes.BLOCK_STATES);
+            AssetUtil.createJsonAssetAndInstall(jsonObject, this, material, ResourcePackAssetTypes.BLOCK_STATES);
         }
         ShaderRendered.installShaderFileToPack(this);
         this.languageStorage.installLanguages();
@@ -185,7 +184,7 @@ public class CustomResourcePack extends CustomPack<CustomResourcePack> {
                     .add(itemTextureData);
         if (resource instanceof AlternateBlockStateModel alternateBlockStateModel) {
             alternateBlockStateModels
-                    .computeIfAbsent(alternateBlockStateModel.getBlockData(), material -> new HashSet<>())
+                    .computeIfAbsent(alternateBlockStateModel.getBlockData().key(), material -> new HashSet<>())
                     .add(alternateBlockStateModel);
         }
         if (resource instanceof LanguageFile languageFile) {

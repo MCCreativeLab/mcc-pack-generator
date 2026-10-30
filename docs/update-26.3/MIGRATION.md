@@ -23,3 +23,11 @@ The complete research and ordered workspace update log are in the sibling fork r
 LanguageStorage now initializes Adventure 5.2's TranslationStore.messageFormat rather than the removed TranslationRegistry. Adventure dependencies match the target Paper server. A regression test initializes the actual store and checks Unicode and language fallbacks.
 
 Actual HTTP-hosting integration passes: the final ZIP bytes and SHA-1 match the server's advertised resource pack. HostingSettings.requireResourcePack is propagated instead of hardcoding required=true. ResourcePackFileHoster owns and closes its Vertx instance and waits for completion. HUD interruption is a normal shutdown path, and its running flag is volatile.
+
+## Client-session follow-up, 2026-10-29
+
+HUDs now share state by player UUID; the platform helper normalizes Bukkit audiences to MCCPlayer. Repeated get-or-start calls retain their ActiveHud. Menu timers run on the tick thread and close restores only supported properties that were actually changed. Sound variant names include their namespace. Vanilla-only items retain a valid native model reference.
+
+The space font now uses finite space providers, and HUD spacing directly emits its existing glyph allocation. The GUI shader derives exact dimensions from Projection rather than a rounded Globals framebuffer scale. `verify-text-shader.py --vertex-shader <generated text.vsh>` checks every generated HUD case. The consuming extension excludes stale local font/shader resource copies and checks its final shaded JAR with `verifyBundledPackResources`.
+
+Native integration passes 77 framework checks. Graphical client validation is still pending; see the sibling OneBlock `docs/migration/RUNTIME_FIXES_2026_10_29.md` for findings, deployment evidence and the remaining manual checks.

@@ -8,14 +8,17 @@ import de.verdox.mccreativelab.generator.resourcepack.types.gui.GUIClickAction;
 import de.verdox.mccreativelab.generator.resourcepack.types.gui.element.active.ActiveGUIButton;
 import de.verdox.mccreativelab.generator.resourcepack.types.gui.element.active.ActiveGUIElement;
 import de.verdox.mccreativelab.util.io.StringAlign;
-import de.verdox.mccreativelab.wrapper.item.MCCItemType;
+import de.verdox.mccreativelab.wrapper.item.MCCItemStack;
 import de.verdox.mccreativelab.wrapper.typed.MCCItems;
+
 import net.kyori.adventure.key.Key;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class GUIButton implements GUIElement {
     private final @NotNull ItemTextureData buttonItem;
@@ -26,12 +29,12 @@ public class GUIButton implements GUIElement {
     private final StringAlign.Alignment buttonTextAlignment;
     private final float textScale;
     private final boolean playClickSound;
-    @Nullable
-    private final BiConsumer<GUIClickAction, ActiveGUI> onClick;
+    @Nullable private final BiConsumer<GUIClickAction, ActiveGUI> onClick;
     private final String textureID;
     private final String textID;
+    private final Consumer<MCCItemStack> itemSetup;
 
-    private GUIButton(Builder builder, String textureID, String textID){
+    private GUIButton(Builder builder, String textureID, String textID) {
         this.playClickSound = builder.playClickSound;
         this.buttonItem = builder.buttonItem;
         this.buttonTextAlignment = builder.buttonTextAlignment;
@@ -43,6 +46,11 @@ public class GUIButton implements GUIElement {
         this.onClick = builder.onClick;
         this.textureID = textureID;
         this.textID = textID;
+        this.itemSetup = builder.itemSetup;
+    }
+
+    public void setupItem(MCCItemStack stack) {
+        itemSetup.accept(stack);
     }
 
     public int getStartIndex() {
@@ -91,7 +99,9 @@ public class GUIButton implements GUIElement {
     }
 
     public static class Builder {
-        private @NotNull ItemTextureData buttonItem = new ItemTextureData(Key.key("mccreativelab","dummy"), MCCItems.STONE.get(), 0, null, null);
+        private @NotNull ItemTextureData buttonItem =
+                new ItemTextureData(
+                        Key.key("mccreativelab", "dummy"), MCCItems.STONE.get(), 0, null, null);
         private final int startIndex;
         private @Nullable Asset<CustomResourcePack> buttonTexture;
         private int xSize = 1;
@@ -99,9 +109,16 @@ public class GUIButton implements GUIElement {
         private StringAlign.Alignment buttonTextAlignment = StringAlign.Alignment.LEFT;
         private float textScale = 1f;
         private boolean playClickSound = true;
-        @Nullable
-        private BiConsumer<GUIClickAction, ActiveGUI> onClick;
-        public Builder(int startIndex){
+        private Consumer<MCCItemStack> itemSetup = stack -> {};
+
+        public Builder edit(Consumer<MCCItemStack> setup) {
+            this.itemSetup = Objects.requireNonNull(setup);
+            return this;
+        }
+
+        @Nullable private BiConsumer<GUIClickAction, ActiveGUI> onClick;
+
+        public Builder(int startIndex) {
             this.startIndex = startIndex;
         }
 
@@ -146,7 +163,7 @@ public class GUIButton implements GUIElement {
             return this;
         }
 
-        public GUIButton build(String textureID, String textID){
+        public GUIButton build(String textureID, String textID) {
             return new GUIButton(this, textureID, textID);
         }
     }

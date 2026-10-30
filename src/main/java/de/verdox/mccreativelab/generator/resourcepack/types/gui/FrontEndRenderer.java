@@ -8,7 +8,7 @@ public class FrontEndRenderer extends Thread {
 
     private final LinkedBlockingQueue<Runnable> updateQueue = new LinkedBlockingQueue<>();
     private final ActiveGUI activeGUI;
-    private boolean running = true;
+    private volatile boolean running = true;
 
     public FrontEndRenderer(ActiveGUI activeGUI) {
         this.activeGUI = activeGUI;
@@ -17,6 +17,7 @@ public class FrontEndRenderer extends Thread {
     public void stopRenderer() {
         this.running = false;
         this.updateQueue.clear();
+        interrupt();
     }
 
     public void offer(Runnable runnable) {
@@ -30,6 +31,8 @@ public class FrontEndRenderer extends Thread {
                 Runnable update = updateQueue.take();
                 update.run();
             }
+        } catch (InterruptedException e) {
+            if (running) Thread.currentThread().interrupt();
         } catch (Throwable e) {
             Logger.getLogger(FrontEndRenderer.class.getSimpleName()).log(Level.SEVERE, "An error occured while rendering the active gui " + activeGUI.getComponentRendered().key().asString(), e);
         }

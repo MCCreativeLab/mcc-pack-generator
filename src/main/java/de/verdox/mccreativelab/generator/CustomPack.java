@@ -69,9 +69,18 @@ public abstract class CustomPack<C extends CustomPack<C>> {
             createDescriptionFile();
             includeThirdPartyFiles();
 
-            // We use a copy of the resource set to allow potential registrations through these resources as well
-            for (Resource<C> cResource : Set.copyOf(addedResources))
-                cResource.beforeResourceInstallation((C) this);
+            // Resources may register further dependencies (menu -> HUD -> fonts/textures).
+            // Prepare every dependency exactly once before installing any resource.
+            Set<Resource<C>> prepared = Collections.newSetFromMap(new IdentityHashMap<>());
+            while (true) {
+                var pending = addedResources.stream().filter(resource -> !prepared.contains(resource)).toList();
+                if (pending.isEmpty())
+                    break;
+                for (Resource<C> resource : pending) {
+                    prepared.add(resource);
+                    resource.beforeResourceInstallation((C) this);
+                }
+            }
 
             reloadResourcesFromConfigs();
 

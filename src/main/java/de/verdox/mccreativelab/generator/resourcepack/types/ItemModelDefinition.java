@@ -11,8 +11,15 @@ import net.kyori.adventure.key.Key;
 import java.io.IOException;
 
 public class ItemModelDefinition extends ResourcePackResource {
+    private final Key backingModel;
+
     public ItemModelDefinition(Key namespacedKey) {
+        this(namespacedKey, Key.key(namespacedKey.namespace(), "item/" + namespacedKey.value()));
+    }
+
+    public ItemModelDefinition(Key namespacedKey, Key backingModel) {
         super(namespacedKey);
+        this.backingModel = backingModel;
     }
 
     @Override
@@ -20,7 +27,7 @@ public class ItemModelDefinition extends ResourcePackResource {
         JsonObject items = JsonObjectBuilder.create()
                 .add("model", JsonObjectBuilder.create()
                         .add("type", "minecraft:model")
-                        .add("model", key().namespace()+":item/"+ key().value())
+                        .add("model", backingModel.asString())
                 ).build();
         AssetUtil.createJsonAssetAndInstall(items, customPack, key(), ResourcePackAssetTypes.ITEMS);
     }

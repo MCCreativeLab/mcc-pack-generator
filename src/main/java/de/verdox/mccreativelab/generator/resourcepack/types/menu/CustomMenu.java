@@ -5,12 +5,8 @@ import de.verdox.mccreativelab.generator.resourcepack.CustomResourcePack;
 import de.verdox.mccreativelab.generator.resourcepack.ResourcePackAssetTypes;
 import de.verdox.mccreativelab.generator.resourcepack.ResourcePackResource;
 import de.verdox.mccreativelab.generator.resourcepack.types.hud.CustomHud;
-import de.verdox.mccreativelab.generator.resourcepack.types.ItemTextureData;
 import de.verdox.mccreativelab.wrapper.entity.types.MCCPlayer;
-import de.verdox.mccreativelab.wrapper.typed.MCCDataComponentTypes;
-import de.verdox.mccreativelab.wrapper.typed.MCCItems;
 import net.kyori.adventure.key.Key;
-import org.checkerframework.checker.units.qual.C;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -80,15 +76,6 @@ public class CustomMenu extends ResourcePackResource {
 
         Key backgroundPictureKey = Key.key(getKey().namespace(), "menu/" + getKey().value() + "/background/" + id);
 
-        //ItemTextureData.ModelType modelType = Resolution.createModel(resolution, backgroundPictureKey);
-        ItemTextureData itemTextureData = new ItemTextureData(backgroundPictureKey, MCCItems.FIREWORK_STAR.get(), picture, null);
-        itemTextureData.setStackConsumer(mccItemStack -> {
-            mccItemStack.components().edit(MCCDataComponentTypes.EQUIPPABLE.get(),
-                    editor -> editor.with(mccEquippable ->
-                            mccEquippable.cameraOverlay().with(Optional.of(backgroundPictureKey))
-                    )
-            );
-        });
         backgroundPictureAssets.put(backgroundPictureKey, picture);
         backgroundPictures.put(id, backgroundPictureKey);
         return this;

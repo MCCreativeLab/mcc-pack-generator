@@ -38,7 +38,7 @@ public abstract class GUIFrontEndBehavior {
     }
 
     public void updateFrontEnd() {
-        getFrontEndRenderer().offer(() -> {
+        MCCPlatform.getInstance().getTaskManager().runOnTickThread(updateTask -> {
             try {
                 if (viewers.isEmpty()) {
                     return;
@@ -55,7 +55,6 @@ public abstract class GUIFrontEndBehavior {
                     return;
                 }
 
-                Set<Audience> newViewers = MCCPlatform.getInstance().getTaskManager().syncAndWait(mccTask -> {
                     Iterator<Audience> iterator = viewers.iterator();
                     Set<Audience> viewersToAdd = new HashSet<>();
 
@@ -77,10 +76,7 @@ public abstract class GUIFrontEndBehavior {
                         openUpdatedInventory(player, itemAtCursor, newRendering);
                         viewersToAdd.add(player);
                     }
-                    return viewersToAdd;
-                });
-
-                viewers.addAll(newViewers);
+                viewers.addAll(viewersToAdd);
             } finally {
                 setup = true;
             }
@@ -203,7 +199,7 @@ public abstract class GUIFrontEndBehavior {
             }
 
             //ActiveGUI.LOGGER.info(currentActiveGUI.getComponentRendered().key() + ": Remove player from gui");
-            removePlayerFromGUI(player, MCCContainerCloseReason.OPEN_NEW);
+            currentActiveGUI.getFrontEndBehavior().removePlayerFromGUI(player, MCCContainerCloseReason.OPEN_NEW);
         }
         //ActiveGUI.LOGGER.info(activeGUI.getComponentRendered().key() + ": Add player to gui");
         addPlayerToGUI(player);
@@ -224,13 +220,14 @@ public abstract class GUIFrontEndBehavior {
         if (tickTask != null && tickTask.isRunning())
             return;
         onFrontendRenderStart();
+        setup = false;
 
         frontEndRenderer = new FrontEndRenderer(activeGUI);
         frontEndRenderer.start();
 
         AtomicInteger updaterTick = new AtomicInteger();
         AtomicInteger lastUpdate = new AtomicInteger();
-        tickTask = MCCPlatform.getInstance().getTaskManager().runTimerAsync(mccTask -> {
+        tickTask = MCCPlatform.getInstance().getTaskManager().runTimerOnTickThread(mccTask -> {
             if (viewers.isEmpty()) {
                 tickTask.cancel();
                 onFrontendClose();
@@ -246,7 +243,7 @@ public abstract class GUIFrontEndBehavior {
         }, 0, 50L, TimeUnit.MILLISECONDS);
 
         if (activeGUI.getComponentRendered().updateInterval < 0) {
-            MCCPlatform.getInstance().getTaskManager().runAsync(mccTask -> activeGUI.forceUpdate());
+            activeGUI.forceUpdate();
         }
     }
 

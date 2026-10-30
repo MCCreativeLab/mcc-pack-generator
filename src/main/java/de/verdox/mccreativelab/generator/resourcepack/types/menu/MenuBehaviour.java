@@ -30,6 +30,7 @@ public abstract class MenuBehaviour {
     private MCCTask effectTask;
     private MCCTask checkerTask;
     private MCCLocation locationBefore;
+    private final java.util.concurrent.atomic.AtomicBoolean closed = new java.util.concurrent.atomic.AtomicBoolean();
     private int lastTickButtonPressed;
     private int lastScrollTick;
     private int currentScrollMode = 0;
@@ -43,13 +44,12 @@ public abstract class MenuBehaviour {
     }
 
     public void start() {
-        MCCItemStack[] fakeContents = new MCCItemStack[46];
         heldSlotBefore = player.getInventory().getHeldItemSlot();
         locationBefore = player.getLocation();
 
-        player.getTempData().storeData("hasMenuOpen", false);
+        player.getTempData().storeData("hasMenuOpen", true);
 
-        this.checkerTask = MCCPlatform.getInstance().getTaskManager().runTimerAsync(mccTask -> {
+        this.checkerTask = MCCPlatform.getInstance().getTaskManager().runTimerOnTickThread(mccTask -> {
             if (player.isDead() || !player.isOnline()) {
                 close();
                 return;
@@ -59,31 +59,22 @@ public abstract class MenuBehaviour {
                     player.getTimeProperty().set(6000L);
                 if (activeMenu.getCustomMenu().doFakeWeather)
                     player.getWeatherProperty().set(Weather.CLEAR);
-
-/*                player.getPickupItemProperty().set(false);
-                player.getInventoryClickProperty().set(false);
-                player.getInventoryInteractProperty().set(false);
-                player.getSwapHandsProperty().set(false);
-                player.getInteractProperty().set(false);
-                player.getUntargetableProperty().addAllPossibilities();
-                player.getDamageImmunityProperty().addAllPossibilities();*/
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, "An error occurred in the checker task: " + e.getMessage());
-                this.checkerTask.cancel();
+                activeMenu.abort(e);
             }
         }, 0L, 1L, TimeUnit.SECONDS);
 
-        this.menuViewTask = MCCPlatform.getInstance().getTaskManager().runTimerAsync((task) -> {
+        this.menuViewTask = MCCPlatform.getInstance().getTaskManager().runTimerOnTickThread((task) -> {
             try {
                 player.getInventory().setHeldItemSlot(4);
-                fakeContents[5] = activeMenu.getActiveBackgroundPicture();
-                player.getInventory().sendFakeContents(fakeContents);
+                refreshInventory();
             }
             catch (Exception e) {
                 LOGGER.log(Level.SEVERE, "An error occurred in the menuViewTask task: " + e.getMessage());
-                this.menuViewTask.cancel();
+                activeMenu.abort(e);
             }
-        }, 0L, 1L, TimeUnit.MILLISECONDS);
+        }, 0L, 50L, TimeUnit.MILLISECONDS);
 
         if (activeMenu.getCustomMenu().doEffects) {
             this.effectTask = MCCPlatform.getInstance().getTaskManager().runTimerOnTickThread(mccTask -> {
@@ -97,7 +88,7 @@ public abstract class MenuBehaviour {
                 }
                 catch (Exception e) {
                     LOGGER.log(Level.SEVERE, "An error occurred in the effect task: " + e.getMessage());
-                    this.effectTask.cancel();
+                    activeMenu.abort(e);
                 }
             }, 0L, 1, TimeUnit.SECONDS);
         }
@@ -111,6 +102,19 @@ public abstract class MenuBehaviour {
         }
     }
 
+    /**
+     * Reapplies the client-only menu inventory after server/client inventory updates.
+     * sendFakeContents uses player-inventory indices (helmet = 39), not container
+     * menu indices (helmet = 5). The real inventory is never modified.
+     */
+    public void refreshInventory() {
+        if (closed.get() || !player.isOnline() || player.isDead())
+            return;
+        MCCItemStack[] fakeContents = new MCCItemStack[41];
+        fakeContents[39] = activeMenu.getActiveBackgroundPicture();
+        player.getInventory().sendFakeContents(fakeContents);
+    }
+
     private @Nullable MCCLocation getLocationOnOpen() {
         MCCLocation location = null;
 
@@ -122,37 +126,46 @@ public abstract class MenuBehaviour {
     }
 
     public void close() {
-        player.getInventory().setHeldItemSlot(heldSlotBefore);
-
-        player.syncInventory();
-
+        if (!closed.compareAndSet(false, true))
+            return;
         if (menuViewTask != null)
             menuViewTask.cancel();
         if (checkerTask != null)
             checkerTask.cancel();
         if (effectTask != null)
             effectTask.cancel();
-        player.teleport(locationBefore);
-        if (onEnd != null)
-            onEnd.run();
 
-        player.getTempData().removeData("hasMenuOpen");
-        if (activeMenu.getCustomMenu().hideOtherPlayers) {
-            for (MCCPlayer onlinePlayer : MCCPlatform.getInstance().getOnlinePlayers()) {
-                player.getHideProperty().remove(onlinePlayer);
+        try {
+            if (player.isOnline()) {
+                if (activeMenu.getCustomMenu().doEffects) {
+                    removeMenuEffect(MCCEffects.BLINDNESS.get(), 1, 40);
+                    removeMenuEffect(MCCEffects.SLOWNESS.get(), 3, 20);
+                    removeMenuEffect(MCCEffects.MINING_FATIGUE.get(), -1, 20);
+                }
+                player.getInventory().setHeldItemSlot(heldSlotBefore);
+                player.syncInventory();
+                if (!player.isDead())
+                    player.teleport(locationBefore);
+                if (activeMenu.getCustomMenu().hideOtherPlayers) {
+                    for (MCCPlayer onlinePlayer : MCCPlatform.getInstance().getOnlinePlayers())
+                        player.getHideProperty().remove(onlinePlayer);
+                }
+                if (activeMenu.getCustomMenu().doFakeTime)
+                    player.getTimeProperty().sync();
+                if (activeMenu.getCustomMenu().doFakeWeather)
+                    player.getWeatherProperty().sync();
             }
+        } finally {
+            player.getTempData().removeData("hasMenuOpen");
+            if (onEnd != null)
+                onEnd.run();
         }
+    }
 
-        player.getTimeProperty().sync();
-        player.getWeatherProperty().sync();
-        player.getPickupItemProperty().sync();
-        player.getInventoryClickProperty().sync();
-        player.getInventoryInteractProperty().sync();
-        player.getSwapHandsProperty().sync();
-        player.getInteractProperty().sync();
-        player.getPickupItemProperty().sync();
-        player.getUntargetableProperty().sync();
-        player.getDamageImmunityProperty().sync();
+    private void removeMenuEffect(de.verdox.mccreativelab.wrapper.entity.MCCEffectType type, int amplifier, int duration) {
+        MCCEffect effect = type.getActiveEffect(player);
+        if (effect != null && effect.getAmplifier() == amplifier && effect.getDuration() >= 0 && effect.getDuration() <= duration)
+            type.removeEffect(player);
     }
 
     public void handleInput(Input input) {

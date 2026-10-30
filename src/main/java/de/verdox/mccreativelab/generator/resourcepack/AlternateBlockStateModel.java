@@ -26,6 +26,10 @@ public class AlternateBlockStateModel extends ResourcePackResource {
     public void installResourceToPack(CustomResourcePack customPack) throws IOException {}
 
     String getVariantName() {
+        return getVariantName(blockData);
+    }
+
+    private static String getVariantName(MCCBlockState blockData) {
         String regex = "\\[(.*?)\\]";
         String input = blockData.toBlockDataString();
         Pattern pattern = Pattern.compile(regex);
@@ -41,6 +45,15 @@ public class AlternateBlockStateModel extends ResourcePackResource {
 
     public static JsonObject createBlockStateJson(Set<AlternateBlockStateModel> alternateBlockStateModels){
         var variants = JsonObjectBuilder.create();
+        // Unreserved note-block states retain the vanilla model. Enumerate the
+        // current native states so fallback and custom selectors never overlap.
+        if (!alternateBlockStateModels.isEmpty()) {
+            var sample = alternateBlockStateModels.iterator().next().blockData;
+            if (sample.key().equals(Key.key("minecraft", "note_block"))) {
+                for (MCCBlockState state : sample.getBlockType().getAllBlockStates())
+                    variants.add(getVariantName(state), JsonObjectBuilder.create().add("model", "minecraft:block/note_block"));
+            }
+        }
         for (AlternateBlockStateModel alternateBlockStateModel : alternateBlockStateModels) {
             variants.add(alternateBlockStateModel.getVariantName(), JsonObjectBuilder.create().add("model", alternateBlockStateModel.alternativeModelKey.asString()));
         }

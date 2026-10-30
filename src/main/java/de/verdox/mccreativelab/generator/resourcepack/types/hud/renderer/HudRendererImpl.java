@@ -10,7 +10,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 
 public class HudRendererImpl extends Thread implements HudRenderer {
-    private final Map<Audience, PlayerHudRendererData> renderingDataCache = new ConcurrentHashMap<>();
+    private final Map<Object, PlayerHudRendererData> renderingDataCache = new ConcurrentHashMap<>();
     private final LinkedBlockingQueue<TickData> ticksToProcess = new LinkedBlockingQueue<>();
     private volatile boolean isRunning = true;
 
@@ -49,7 +49,14 @@ public class HudRendererImpl extends Thread implements HudRenderer {
     }
 
     private PlayerHudRendererData getRendererData(Audience player) {
-        return renderingDataCache.computeIfAbsent(player, player1 -> new PlayerHudRendererData(player));
+        var helper = de.verdox.mccreativelab.platform.GeneratorPlatformHelper.INSTANCE.get();
+        Audience normalized = helper.normalizeHudAudience(player);
+        return renderingDataCache.computeIfAbsent(audienceKey(normalized), key -> new PlayerHudRendererData(normalized));
+    }
+
+    private Object audienceKey(Audience audience) {
+        var uuid = de.verdox.mccreativelab.platform.GeneratorPlatformHelper.INSTANCE.get().getUUIDOfAudience(audience);
+        return uuid == null ? audience : uuid;
     }
 
     @Override
@@ -67,10 +74,10 @@ public class HudRendererImpl extends Thread implements HudRenderer {
                 for (Audience player : list) {
                     getRendererData(player).sendUpdate();
                 }
-                for (Audience player : renderingDataCache.keySet()) {
-                    if(!list.contains(player))
-                        renderingDataCache.remove(player);
-                }
+                Set<Object> onlineKeys = new HashSet<>();
+                for (Audience player : list)
+                    onlineKeys.add(audienceKey(player));
+                renderingDataCache.keySet().removeIf(key -> !onlineKeys.contains(key));
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return;

@@ -4,7 +4,6 @@ import de.verdox.mccreativelab.generator.resourcepack.types.font.Font;
 import de.verdox.mccreativelab.generator.resourcepack.types.rendered.ActiveComponentRendered;
 import de.verdox.mccreativelab.generator.resourcepack.types.rendered.element.SingleHudElement;
 import de.verdox.mccreativelab.generator.resourcepack.types.rendered.util.ScreenPosition;
-import de.verdox.mccreativelab.platform.GeneratorPlatformHelper;
 import de.verdox.mccreativelab.util.io.StringAlign;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
@@ -94,8 +93,7 @@ public class SingleHudText implements SingleHudElement {
             if (hudText.alignment() == null)
                 return createTextComponent();
 
-            String text = GeneratorPlatformHelper.INSTANCE.get().stripOldColorCodes(renderedText.content());
-            int textLength = hudText.font().getPixelWidth(text);
+            int textLength = this.textLength;
             //textLength = FontUtil.calculateStringLength(text);
 
             return switch (hudText.alignment()) {
@@ -141,7 +139,9 @@ public class SingleHudText implements SingleHudElement {
         }
 
         private int getTextLength(TextComponent textComponent) {
-            int length = getHudElement().font().getPixelWidth(textComponent.content());
+            int length = getHudElement().font().getPixelWidth(
+                    de.verdox.mccreativelab.platform.GeneratorPlatformHelper.INSTANCE.get()
+                            .stripOldColorCodes(textComponent.content()));
             for (Component child : textComponent.children()) {
                 if (!(child instanceof TextComponent component)) {
                     if (child instanceof TranslatableComponent)
@@ -154,11 +154,11 @@ public class SingleHudText implements SingleHudElement {
         }
 
         private Component createNegativeSpacing(int spacing) {
-            return Component.translatable("space.-" + Math.abs(spacing)).font(Key.key("space:default"));
+            return de.verdox.mccreativelab.generator.resourcepack.types.font.SpaceFont.advance(-Math.abs(spacing));
         }
 
         private Component createSpacing(int spacing) {
-            return Component.translatable("space." + Math.abs(spacing)).font(Key.key("space:default"));
+            return de.verdox.mccreativelab.generator.resourcepack.types.font.SpaceFont.advance(Math.abs(spacing));
         }
     }
 }

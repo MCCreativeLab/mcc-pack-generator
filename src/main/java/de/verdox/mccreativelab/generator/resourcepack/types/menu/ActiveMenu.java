@@ -8,6 +8,7 @@ import de.verdox.mccreativelab.generator.resourcepack.types.rendered.element.sin
 import de.verdox.mccreativelab.platform.GeneratorPlatformHelper;
 import de.verdox.mccreativelab.platform.PlatformResourcePack;
 import de.verdox.mccreativelab.wrapper.entity.types.MCCPlayer;
+import de.verdox.mccreativelab.wrapper.entity.MCCEquipmentSlot;
 import de.verdox.mccreativelab.wrapper.item.MCCItemStack;
 import de.verdox.mccreativelab.wrapper.platform.MCCPlatform;
 import de.verdox.mccreativelab.wrapper.typed.MCCDataComponentTypes;
@@ -28,6 +29,8 @@ public class ActiveMenu {
     private final MenuBehaviour behaviour;
     private final Set<MenuState> enabledStates = new ConcurrentHashSet<>();
     private MCCItemStack activeBackgroundPicture;
+    private ActiveHud activeHud;
+    private boolean failed;
 
     ActiveMenu(MCCPlayer player, CustomMenu customMenu) {
         this.player = player;
@@ -35,27 +38,39 @@ public class ActiveMenu {
         this.customMenu = customMenu;
         closeActiveMenu(player);
         behaviour = GeneratorPlatformHelper.INSTANCE.get().createMenuBehavior(player, this, (playerKeyInput, activeMenu) -> {
-            for (MenuState enabledState : activeMenu.enabledStates) {
-                for (Consumer<ActiveMenu> activeMenuConsumer : enabledState.getMenuOperationsOnKey(playerKeyInput)) {
-                    activeMenuConsumer.accept(activeMenu);
-                }
+            try {
+                activeMenu.execute(playerKeyInput, activeMenu);
+            } catch (RuntimeException | Error failure) {
+                activeMenu.abort(failure);
+                throw failure;
             }
-        }, () -> customMenu.getOnClose().accept(this));
-        ;
-        behaviour.start();
-        if (customMenu.getMenuHud() != null)
-            GeneratorPlatformHelper.INSTANCE.get().getHudRenderer().getOrStartActiveHud(player, customMenu.getMenuHud());
-        if (activeMenus.containsKey(playerUUID)) {
-            activeMenus.get(playerUUID).close();
+        }, this::onEnd);
+        try {
+            behaviour.start();
+            if (customMenu.getMenuHud() != null)
+                activeHud = GeneratorPlatformHelper.INSTANCE.get().getHudRenderer().getOrStartActiveHud(player, customMenu.getMenuHud());
+            if (activeMenus.containsKey(playerUUID)) {
+                activeMenus.get(playerUUID).close();
+            }
+            activeMenus.put(playerUUID, this);
+            hideEverything();
+            customMenu.getStates().forEach((s, menuState) -> {
+                if (!menuState.isVisibleOnOpen())
+                    return;
+                this.enableState(s);
+            });
+        } catch (RuntimeException | Error failure) {
+            abort(failure);
+            throw failure;
         }
-        activeMenus.put(playerUUID, this);
-        hideEverything();
-        customMenu.getStates().forEach((s, menuState) -> {
-            if (!menuState.isVisibleOnOpen())
-                return;
-            this.enableState(s);
-        });
     }
+
+    void abort(Throwable failure) {
+        failed = true;
+        try { close(); } catch (RuntimeException | Error cleanup) { failure.addSuppressed(cleanup); }
+    }
+
+    public boolean hasFailed() { return failed; }
 
     MCCItemStack getActiveBackgroundPicture() {
         return activeBackgroundPicture;
@@ -81,15 +96,17 @@ public class ActiveMenu {
     }
 
     public void close() {
-        player.stopSound(SoundStop.source(Sound.Source.MASTER));
-        behaviour.close();
+        try {
+            if (player.isOnline())
+                player.stopSound(SoundStop.source(Sound.Source.MASTER));
+        } finally {
+            behaviour.close();
+        }
     }
 
     @Nullable
     public ActiveHud getActiveHud() {
-        if (customMenu.getMenuHud() != null)
-            return GeneratorPlatformHelper.INSTANCE.get().getHudRenderer().getOrStartActiveHud(player, customMenu.getMenuHud());
-        return null;
+        return activeHud;
     }
 
     public void changeButton(String id, Consumer<Button.RenderedButton> consumer) {
@@ -127,17 +144,20 @@ public class ActiveMenu {
         var key = customMenu.getBackgroundPictureKey().get(id);
         activeBackgroundPicture.components().edit(MCCDataComponentTypes.EQUIPPABLE.get(),
                 editor -> editor.with(mccEquippable ->
-                        mccEquippable.cameraOverlay().with(Optional.of(key))
+                        mccEquippable.slot().with(MCCEquipmentSlot.HEAD)
+                                .cameraOverlay().with(Optional.of(key))
                 )
         );
         updateBackgroundPicture();
     }
 
     private void updateBackgroundPicture() {
+        behaviour.refreshInventory();
     }
 
     public void clearBackgroundPicture() {
         activeBackgroundPicture = null;
+        updateBackgroundPicture();
     }
 
     public void enableState(String id) {
@@ -163,8 +183,8 @@ public class ActiveMenu {
     }
 
     private void enableState(MenuState state) {
-        state.getOnEnableState().accept(this);
         enabledStates.add(state);
+        state.getOnEnableState().accept(this);
         updateBackgroundPicture();
         GeneratorPlatformHelper.INSTANCE.get().getHudRenderer().forceUpdate(player);
     }
@@ -184,12 +204,18 @@ public class ActiveMenu {
     }
 
     private void onEnd() {
-        if (this.customMenu.getOnClose() != null)
+        try {
+            hideEverything();
+        } finally {
+            try {
+                if (customMenu.getMenuHud() != null)
+                    GeneratorPlatformHelper.INSTANCE.get().getHudRenderer().stopActiveHud(player, customMenu.getMenuHud());
+            } finally {
+                activeMenus.remove(playerUUID, this);
+            }
+        }
+        if (!failed && this.customMenu.getOnClose() != null)
             this.customMenu.getOnClose().accept(this);
-        hideEverything();
-        if (customMenu.getMenuHud() != null)
-            GeneratorPlatformHelper.INSTANCE.get().getHudRenderer().stopActiveHud(player, customMenu.getMenuHud());
-        activeMenus.remove(playerUUID);
     }
 
     private void hideEverything() {

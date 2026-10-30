@@ -39,8 +39,10 @@ public class PlayerHudRendererData {
     @NotNull
     public ActiveHud getOrStartActiveHud(CustomHud customHud) {
         customHud.checkInstalled();
-        addToRendering(customHud);
-        return Objects.requireNonNull(getActiveHud(customHud));
+        return cache.computeIfAbsent(customHud.key(), key -> {
+            this.needsUpdate.set(true);
+            return new ActiveHud(player, customHud);
+        });
     }
 
     public void forceUpdate() {
