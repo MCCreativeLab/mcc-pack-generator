@@ -24,12 +24,25 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 public class ItemTextureData extends ResourcePackResource {
     public static final Logger LOGGER = Logger.getLogger(ItemTextureData.class.getName());
+
+    /**
+     * 1.21.4+ removed model overrides; custom_model_data only changes appearance
+     * when the vanilla item's definition in assets/minecraft/items dispatches on it.
+     * Collect every fake-item texture per vanilla base material so each used base
+     * material gets one aggregated definition (covers stacks without an explicit
+     * item_model component, e.g. recipe ingredient example stacks in the recipe book).
+     */
+    private static final Map<Key, List<ItemTextureData>> VANILLA_BASE_COLLECTOR = new ConcurrentHashMap<>();
+    private static final Map<Key, Set<ItemTextureData>> PROCESSED_HOOKS = new ConcurrentHashMap<>();
+    private static final Set<Key> WRITTEN_VANILLA_OVERRIDES = ConcurrentHashMap.newKeySet();
     private final MCCItemType material;
     private final int customModelData;
     private final Asset<CustomResourcePack> pngFile;
@@ -92,8 +105,89 @@ public class ItemTextureData extends ResourcePackResource {
 
     @Override
     public void beforeResourceInstallation(CustomResourcePack customPack) throws IOException {
+        LOGGER.info("DEBUG before hook " + key() + " vanillaTexture=" + useVanillaTexture + " cmd=" + customModelData);
         ItemModelDefinition itemModelDefinition = new ItemModelDefinition(key());
         customPack.register(itemModelDefinition);
+        if (!useVanillaTexture)
+            VANILLA_BASE_COLLECTOR
+                    .computeIfAbsent(material.key(), k -> new CopyOnWriteArrayList<>())
+                    .add(this);
+        else
+            LOGGER.info("Vanilla override collector skipped for " + key() + " (useVanillaTexture=true)");
+    }
+
+    @Override
+    public void afterResourceInstallation(CustomResourcePack customPack) throws IOException {
+        LOGGER.info("DEBUG after hook " + key() + " vanillaTexture=" + useVanillaTexture
+                + " collected=" + VANILLA_BASE_COLLECTOR.size());
+        if (useVanillaTexture) return;
+        Key materialKey = material.key();
+        List<ItemTextureData> registered = VANILLA_BASE_COLLECTOR.get(materialKey);
+        if (registered == null || !registered.contains(this)) {
+            LOGGER.warning("Vanilla override hook for " + key() + " on base " + materialKey
+                    + " skipped (collected=" + (registered == null ? "none" : registered.size()) + ")");
+            return;
+        }
+        // Count processed hooks instead of draining the shared list: removing each
+        // texture left the last writer with an EMPTY snapshot (VANILLA_BASE_COLLECTOR
+        // stores the same list object), so the aggregated definition was never written.
+        // The last hook for a base material writes the full collected list once.
+        Set<ItemTextureData> processed =
+                PROCESSED_HOOKS.computeIfAbsent(materialKey, k -> ConcurrentHashMap.newKeySet());
+        if (!processed.add(this)) return;
+        if (processed.size() >= registered.size() && WRITTEN_VANILLA_OVERRIDES.add(materialKey)) {
+            List<ItemTextureData> textures = VANILLA_BASE_COLLECTOR.remove(materialKey);
+            PROCESSED_HOOKS.remove(materialKey);
+            writeVanillaItemModelOverride(customPack, materialKey, textures);
+        }
+    }
+
+    private static void writeVanillaItemModelOverride(CustomResourcePack customPack, Key materialKey,
+                                                      List<ItemTextureData> textures) throws IOException {
+        if (textures == null || textures.isEmpty()) return;
+        Map<Integer, Key> modelsByCmd = new TreeMap<>();
+        for (ItemTextureData texture : textures) {
+            int cmd = texture.customModelData;
+            // Vanilla stacks without custom_model_data dispatch as 0; never capture them.
+            if (cmd <= 1) {
+                LOGGER.warning("Fake item " + texture.key() + " has custom model data " + cmd
+                        + " which collides with vanilla stacks; skipping vanilla item override entry");
+                continue;
+            }
+            Key model = Key.key(texture.key().namespace(), "item/" + texture.key().value());
+            Key previous = modelsByCmd.putIfAbsent(cmd, model);
+            if (previous != null && !previous.equals(model))
+                LOGGER.severe("Custom model data collision on base item " + materialKey + ": " + previous
+                        + " vs " + model + " (cmd " + cmd + "); keeping " + previous);
+        }
+        if (modelsByCmd.isEmpty()) return;
+
+        // range_dispatch selects the highest threshold <= the stack's cmd float.
+        // Threshold cmd-1 therefore captures exactly this cmd (cmd >= 2) and nothing
+        // higher, because the next registered entry takes over at its own cmd-1.
+        JsonArrayBuilder entries = JsonArrayBuilder.create();
+        for (Map.Entry<Integer, Key> entry : modelsByCmd.entrySet()) {
+            entries.add(JsonObjectBuilder.create()
+                    .add("threshold", entry.getKey() - 1)
+                    .add("model", JsonObjectBuilder.create()
+                            .add("type", "minecraft:model")
+                            .add("model", entry.getValue().asString()))
+                    .build());
+        }
+        JsonObject definition = JsonObjectBuilder.create()
+                .add("model", JsonObjectBuilder.create()
+                        .add("type", "minecraft:range_dispatch")
+                        .add("property", "minecraft:custom_model_data")
+                        .add("index", 0)
+                        .add("entries", entries)
+                        .add("fallback", JsonObjectBuilder.create()
+                                .add("type", "minecraft:model")
+                                .add("model", materialKey.namespace() + ":" + materialKey.value()))
+                        .build())
+                .build();
+        AssetUtil.createJsonAssetAndInstall(definition, customPack, materialKey, ResourcePackAssetTypes.ITEMS);
+        LOGGER.info("Wrote vanilla item model definition for " + materialKey + " with "
+                + modelsByCmd.size() + " custom model entries");
     }
 
     @Override
